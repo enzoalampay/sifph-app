@@ -28,6 +28,7 @@ import {
   getBaseFactionTactics,
   getCommanderTactics,
 } from "@/lib/data/loader";
+import { getPortraitUrl, getCardImageUrl } from "@/lib/utils/card-images";
 import { FACTIONS, getFactionInfo } from "@/lib/data/factions";
 import { searchFilter } from "@/lib/utils/search";
 import { Button } from "@/components/ui/Button";
@@ -107,6 +108,9 @@ export default function BuilderPage() {
 
   // Save feedback
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  // Preview list modal
+  const [previewList, setPreviewList] = useState<ArmyList | null>(null);
 
   // Search states for browser tabs
   const [unitSearch, setUnitSearch] = useState("");
@@ -312,10 +316,56 @@ export default function BuilderPage() {
   }, [army?.commanderId]);
 
   // Attachments available for the "pick attachment" per-slot modal
+  // Filtered by tray type of the target unit slot
   const slotAttachments = useMemo(() => {
-    if (!army) return [];
-    return getAvailableAttachments(army.faction).filter((a) => !a.commander);
-  }, [army?.faction]);
+    if (!army || !pickAttachForSlot) return [];
+    const slot = army.units.find((s) => s.id === pickAttachForSlot);
+    const targetUnit = slot ? findUnitById(slot.unitId) : null;
+    const all = getAvailableAttachments(army.faction).filter((a) => !a.commander);
+    if (!targetUnit) return all;
+    // Filter by tray type match
+    return all.filter((a) => a.tray === targetUnit.tray);
+  }, [army?.faction, army, pickAttachForSlot]);
+
+  // ----------- Duplicate Prevention -----------
+  // Only CHARACTER units/NCUs cannot be repeated. Regular units can be added multiple times.
+  const usedCharacterUnitNames = useMemo(() => {
+    if (!army) return new Set<string>();
+    return new Set(
+      army.units
+        .map((slot) => findUnitById(slot.unitId))
+        .filter((u): u is GameUnit => !!u && !!u.character)
+        .map((u) => u.name)
+    );
+  }, [army]);
+
+  const usedCharacterNCUNames = useMemo(() => {
+    if (!army) return new Set<string>();
+    return new Set(
+      army.ncus
+        .map((slot) => findNCUById(slot.ncuId))
+        .filter((n): n is GameNCU => !!n && !!n.character)
+        .map((n) => n.name)
+    );
+  }, [army]);
+
+  const usedCharacterAttachmentNames = useMemo(() => {
+    if (!army) return new Set<string>();
+    const names: string[] = [];
+    army.units.forEach((slot) => {
+      slot.attachmentIds.forEach((aId) => {
+        const att = findAttachmentById(aId);
+        // Only character attachments are unique
+        if (att && att.character) names.push(att.name);
+      });
+    });
+    // Commander is always a character attachment
+    if (army.commanderId) {
+      const cmd = findAttachmentById(army.commanderId);
+      if (cmd) names.push(cmd.name);
+    }
+    return new Set(names);
+  }, [army]);
 
   // ---------------------------------------------------------------------------
   // MODE 1: No army -- show saved lists + faction picker
@@ -368,6 +418,13 @@ export default function BuilderPage() {
                                 </p>
                               </div>
                             <div className="flex items-center gap-1 shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setPreviewList(list)}
+                              >
+                                View
+                              </Button>
                               <Link href={`/builder/${list.id}`}>
                                 <Button variant="ghost" size="sm">
                                   Edit
@@ -437,6 +494,117 @@ export default function BuilderPage() {
             </div>
           </section>
         </div>
+
+        {/* ---- MODAL: List Preview ---- */}
+        <Modal
+          isOpen={previewList !== null}
+          onClose={() => setPreviewList(null)}
+          title={previewList?.name ?? "Army List"}
+          size="lg"
+        >
+          {previewList && (() => {
+            const pFi = getFactionInfo(previewList.faction);
+            const pCommander = previewList.commanderId ? findAttachmentById(previewList.commanderId) : null;
+            const pUnits = previewList.units.map(s => ({
+              slot: s,
+              unit: findUnitById(s.unitId),
+              attachments: s.attachmentIds.map(a => findAttachmentById(a)).filter((a): a is GameAttachment => !!a),
+            }));
+            const pNCUs = previewList.ncus.map(s => ({ slot: s, ncu: findNCUById(s.ncuId) }));
+            const pTotalCost = pUnits.reduce((sum, u) => sum + (u.unit?.cost ?? 0) + u.attachments.reduce((as, a) => as + (a.cost ?? 0), 0), 0)
+              + pNCUs.reduce((sum, n) => sum + (n.ncu?.cost ?? 0), 0)
+              + (pCommander?.cost ?? 0);
+
+            return (
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-center gap-3 pb-3 border-b border-stone-700">
+                  <img src={pFi.crestUrl} alt={pFi.shortName} className="w-10 h-10 object-contain drop-shadow" />
+                  <div>
+                    <p className="text-sm font-semibold text-stone-100">{pFi.displayName}</p>
+                    <p className="text-xs text-stone-400">{pTotalCost}/{previewList.pointLimit} pts</p>
+                  </div>
+                </div>
+
+                {/* Commander */}
+                {pCommander && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Commander</p>
+                    <div className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${pFi.color}15`, borderLeft: `3px solid ${pFi.color}` }}>
+                      <img src={getPortraitUrl(pCommander.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <div>
+                        <p className="text-sm font-medium text-stone-100">{pCommander.name}</p>
+                        {pCommander.title && <p className="text-[10px] text-stone-400">{pCommander.title}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Units */}
+                {pUnits.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Units ({pUnits.length})</p>
+                    <div className="space-y-1.5">
+                      {pUnits.map(({ slot, unit, attachments }) => (
+                        <div key={slot.id} className="rounded-md p-2" style={{ backgroundColor: `${unit ? getFactionInfo(unit.faction).color : pFi.color}15`, borderLeft: `3px solid ${unit ? getFactionInfo(unit.faction).color : pFi.color}` }}>
+                          <div className="flex items-center gap-2">
+                            {unit && <img src={getPortraitUrl(unit.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs font-medium text-stone-100 truncate">{unit?.name ?? slot.unitId}</p>
+                                {unit && <span className="text-[10px] text-stone-400">{unit.cost} pts</span>}
+                              </div>
+                              {attachments.length > 0 && (
+                                <div className="mt-0.5">
+                                  {attachments.map(att => (
+                                    <p key={att.id} className="text-[10px] text-stone-400 pl-2">+ {att.name}{att.cost ? ` (${att.cost} pts)` : ''}</p>
+                                  ))}
+                                </div>
+                              )}
+                              {previewList.commanderUnitSlotId === slot.id && pCommander && (
+                                <p className="text-[10px] text-amber-400 pl-2">★ {pCommander.name}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* NCUs */}
+                {pNCUs.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">NCUs ({pNCUs.length})</p>
+                    <div className="space-y-1.5">
+                      {pNCUs.map(({ slot, ncu }) => (
+                        <div key={slot.id} className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${ncu ? getFactionInfo(ncu.faction).color : pFi.color}15`, borderLeft: `3px solid ${ncu ? getFactionInfo(ncu.faction).color : pFi.color}` }}>
+                          {ncu && <img src={getPortraitUrl(ncu.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                          <div>
+                            <p className="text-xs font-medium text-stone-100">{ncu?.name ?? slot.ncuId}</p>
+                            {ncu && <span className="text-[10px] text-stone-400">{ncu.cost} pts</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2 border-t border-stone-700">
+                  <Link href={`/builder/${previewList.id}`}>
+                    <Button variant="primary" size="sm" onClick={() => setPreviewList(null)}>
+                      Edit List
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setPreviewList(null)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </Modal>
       </div>
     );
   }
@@ -531,13 +699,21 @@ export default function BuilderPage() {
             {commanderData ? (
               <div className="mt-2">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <HoverCardPreview cardId={commanderData.id} faction={army.faction}>
-                        <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors cursor-default">
-                          {commanderData.name}
-                        </span>
-                      </HoverCardPreview>
+                  <div className="flex items-start gap-2.5">
+                    <img
+                      src={getPortraitUrl(commanderData.id)}
+                      alt=""
+                      className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      loading="lazy"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <HoverCardPreview cardId={commanderData.id} faction={army.faction}>
+                          <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors cursor-default">
+                            {commanderData.name}
+                          </span>
+                        </HoverCardPreview>
                       <button
                         className="text-stone-500 hover:text-amber-400 transition-colors"
                         onClick={() => openCard(commanderData.id, commanderData.name, army.faction)}
@@ -564,6 +740,7 @@ export default function BuilderPage() {
                         ⚠ Not attached to a unit
                       </p>
                     )}
+                    </div>
                   </div>
                   <Button variant="danger" size="sm" onClick={removeCommander}>
                     Remove
@@ -633,67 +810,90 @@ export default function BuilderPage() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {resolvedUnits.map(({ slot, unit, attachments }) => (
-                  <Card key={slot.id} padding="sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {unit ? (
-                            <>
-                              <HoverCardPreview cardId={unit.id} faction={unit.faction}>
-                                <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
-                                  {unit.name}
-                                </span>
-                              </HoverCardPreview>
-                              <button
-                                className="text-stone-500 hover:text-amber-400 transition-colors"
-                                onClick={() => openCard(unit.id, unit.name, unit.faction)}
-                                title="View card"
-                              >
-                                <span className="text-[10px]">&#128065;</span>
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-sm font-medium text-stone-100">
-                              {slot.unitId}
-                            </span>
-                          )}
-                          {unit && (
-                            <Badge variant="default" size="sm">
-                              {unit.cost} pts
-                            </Badge>
-                          )}
-                          {unit && (
-                            <Badge variant="info" size="sm">
-                              {unit.tray}
-                            </Badge>
-                          )}
+                {resolvedUnits.map(({ slot, unit, attachments }) => {
+                  const unitFi = unit ? getFactionInfo(unit.faction) : factionInfo!;
+                  return (
+                  <Card key={slot.id} padding="none" className="overflow-hidden">
+                    <div className="flex">
+                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: unitFi.color }} />
+                      <div className="flex-1 p-3" style={{ backgroundColor: `${unitFi.color}10` }}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            {unit && (
+                              <img
+                                src={getPortraitUrl(unit.id)}
+                                alt=""
+                                className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                loading="lazy"
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {unit ? (
+                                  <>
+                                    <HoverCardPreview cardId={unit.id} faction={unit.faction}>
+                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
+                                        {unit.name}
+                                      </span>
+                                    </HoverCardPreview>
+                                    <button
+                                      className="text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={() => openCard(unit.id, unit.name, unit.faction)}
+                                      title="View card"
+                                    >
+                                      <span className="text-[10px]">&#128065;</span>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-sm font-medium text-stone-100">
+                                    {slot.unitId}
+                                  </span>
+                                )}
+                                {unit && (
+                                  <Badge variant="default" size="sm">
+                                    {unit.cost} pts
+                                  </Badge>
+                                )}
+                                {unit && (
+                                  <Badge variant="info" size="sm">
+                                    {unit.tray}
+                                  </Badge>
+                                )}
+                              </div>
+                              {unit && (
+                                <p className="text-xs text-stone-500 mt-0.5">
+                                  DEF {unit.defense} &middot; MOR {unit.morale}{" "}
+                                  &middot; SPD {unit.speed}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => removeUnit(slot.id)}
+                          >
+                            X
+                          </Button>
                         </div>
-                        {unit && (
-                          <p className="text-xs text-stone-500 mt-0.5">
-                            DEF {unit.defense} &middot; MOR {unit.morale}{" "}
-                            &middot; SPD {unit.speed}
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => removeUnit(slot.id)}
-                      >
-                        X
-                      </Button>
-                    </div>
 
                     {/* Attached attachments */}
                     {attachments.length > 0 && (
-                      <div className="mt-2 pl-3 border-l-2 border-stone-700 space-y-1">
+                      <div className="mt-2 pl-3 border-l-2 border-stone-700 space-y-1.5">
                         {attachments.map((att) => (
                           <div
                             key={att.id}
                             className="flex items-center justify-between"
                           >
                             <div className="flex items-center gap-2">
+                              <img
+                                src={getPortraitUrl(att.id)}
+                                alt=""
+                                className="w-6 h-6 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                loading="lazy"
+                              />
                               <HoverCardPreview cardId={att.id} faction={att.faction}>
                                 <span className="text-xs text-stone-300 hover:text-amber-400 transition-colors">
                                   {att.name}
@@ -749,8 +949,11 @@ export default function BuilderPage() {
                         + Add Attachment
                       </Button>
                     </div>
+                      </div>
+                    </div>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -769,53 +972,72 @@ export default function BuilderPage() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {resolvedNCUs.map(({ slot, ncu }) => (
-                  <Card key={slot.id} padding="sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {ncu ? (
-                            <>
-                              <HoverCardPreview cardId={ncu.id} faction={ncu.faction}>
-                                <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
-                                  {ncu.name}
-                                </span>
-                              </HoverCardPreview>
-                              <button
-                                className="text-stone-500 hover:text-amber-400 transition-colors"
-                                onClick={() => openCard(ncu.id, ncu.name, ncu.faction)}
-                                title="View card"
-                              >
-                                <span className="text-[10px]">&#128065;</span>
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-sm font-medium text-stone-100">
-                              {slot.ncuId}
-                            </span>
-                          )}
-                          {ncu && (
-                            <Badge variant="default" size="sm">
-                              {ncu.cost} pts
-                            </Badge>
-                          )}
+                {resolvedNCUs.map(({ slot, ncu }) => {
+                  const ncuFi = ncu ? getFactionInfo(ncu.faction) : factionInfo!;
+                  return (
+                  <Card key={slot.id} padding="none" className="overflow-hidden">
+                    <div className="flex">
+                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: ncuFi.color }} />
+                      <div className="flex-1 p-3" style={{ backgroundColor: `${ncuFi.color}10` }}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            {ncu && (
+                              <img
+                                src={getPortraitUrl(ncu.id)}
+                                alt=""
+                                className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                loading="lazy"
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {ncu ? (
+                                  <>
+                                    <HoverCardPreview cardId={ncu.id} faction={ncu.faction}>
+                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
+                                        {ncu.name}
+                                      </span>
+                                    </HoverCardPreview>
+                                    <button
+                                      className="text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={() => openCard(ncu.id, ncu.name, ncu.faction)}
+                                      title="View card"
+                                    >
+                                      <span className="text-[10px]">&#128065;</span>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-sm font-medium text-stone-100">
+                                    {slot.ncuId}
+                                  </span>
+                                )}
+                                {ncu && (
+                                  <Badge variant="default" size="sm">
+                                    {ncu.cost} pts
+                                  </Badge>
+                                )}
+                              </div>
+                              {ncu?.title && (
+                                <p className="text-xs text-stone-400 mt-0.5">
+                                  {ncu.title}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => removeNCU(slot.id)}
+                          >
+                            X
+                          </Button>
                         </div>
-                        {ncu?.title && (
-                          <p className="text-xs text-stone-400 mt-0.5">
-                            {ncu.title}
-                          </p>
-                        )}
                       </div>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => removeNCU(slot.id)}
-                      >
-                        X
-                      </Button>
                     </div>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -947,47 +1169,73 @@ export default function BuilderPage() {
                             No units found.
                           </p>
                         ) : (
-                          filteredUnits.map((u) => (
+                          filteredUnits.map((u) => {
+                            const isDuplicate = u.character && usedCharacterUnitNames.has(u.name);
+                            return (
                             <Card
                               key={u.id}
-                              hover
-                              padding="sm"
-                              onClick={() => addUnit(u.id)}
+                              hover={!isDuplicate}
+                              padding="none"
+                              className={`overflow-hidden ${isDuplicate ? "opacity-40 cursor-not-allowed" : ""}`}
+                              onClick={() => { if (!isDuplicate) addUnit(u.id); }}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-medium text-stone-100 truncate">
-                                    {u.name}
-                                  </p>
-                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    <Badge variant="default" size="sm">
-                                      {u.cost} pts
-                                    </Badge>
-                                    <Badge variant="info" size="sm">
-                                      {u.tray}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-[10px] text-stone-500 mt-1">
-                                    DEF {u.defense} &middot; MOR {u.morale}{" "}
-                                    &middot; SPD {u.speed}
-                                  </p>
+                              <div className="flex">
+                                {/* Character portrait thumbnail */}
+                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                  <img
+                                    src={getPortraitUrl(u.id)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
                                 </div>
-                                <button
-                                  className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openCard(u.id, u.name, u.faction);
-                                  }}
-                                  title="View card"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                </button>
+                                <div className="flex-1 min-w-0 p-2">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                        {u.name}
+                                      </p>
+                                      {isDuplicate && (
+                                        <p className="text-[9px] text-red-400 mt-0.5">Character — already added</p>
+                                      )}
+                                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        <Badge variant="default" size="sm">
+                                          {u.cost} pts
+                                        </Badge>
+                                        <Badge variant="info" size="sm">
+                                          {u.tray}
+                                        </Badge>
+                                        {u.character && (
+                                          <Badge variant="warning" size="sm">
+                                            Character
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <p className="text-[10px] text-stone-500 mt-1">
+                                        DEF {u.defense} &middot; MOR {u.morale}{" "}
+                                        &middot; SPD {u.speed}
+                                      </p>
+                                    </div>
+                                    <button
+                                      className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCard(u.id, u.name, u.faction);
+                                      }}
+                                      title="View card"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </Card>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -1011,47 +1259,68 @@ export default function BuilderPage() {
                             No NCUs found.
                           </p>
                         ) : (
-                          filteredNCUs.map((n) => (
+                          filteredNCUs.map((n) => {
+                            const isDuplicate = n.character && usedCharacterNCUNames.has(n.name);
+                            return (
                             <Card
                               key={n.id}
-                              hover
-                              padding="sm"
-                              onClick={() => addNCU(n.id)}
+                              hover={!isDuplicate}
+                              padding="none"
+                              className={`overflow-hidden ${isDuplicate ? "opacity-40 cursor-not-allowed" : ""}`}
+                              onClick={() => { if (!isDuplicate) addNCU(n.id); }}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-medium text-stone-100 truncate">
-                                    {n.name}
-                                  </p>
-                                  {n.title && (
-                                    <p className="text-[10px] text-stone-400 truncate">
-                                      {n.title}
-                                    </p>
-                                  )}
-                                  <Badge
-                                    variant="default"
-                                    size="sm"
-                                    className="mt-1"
-                                  >
-                                    {n.cost} pts
-                                  </Badge>
+                              <div className="flex">
+                                {/* Character portrait thumbnail */}
+                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                  <img
+                                    src={getPortraitUrl(n.id)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
                                 </div>
-                                <button
-                                  className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openCard(n.id, n.name, n.faction);
-                                  }}
-                                  title="View card"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                </button>
+                                <div className="flex-1 min-w-0 p-2">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                        {n.name}
+                                      </p>
+                                      {isDuplicate && (
+                                        <p className="text-[9px] text-red-400 mt-0.5">Character — already added</p>
+                                      )}
+                                      {n.title && (
+                                        <p className="text-[10px] text-stone-400 truncate">
+                                          {n.title}
+                                        </p>
+                                      )}
+                                      <Badge
+                                        variant="default"
+                                        size="sm"
+                                        className="mt-1"
+                                      >
+                                        {n.cost} pts
+                                      </Badge>
+                                    </div>
+                                    <button
+                                      className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCard(n.id, n.name, n.faction);
+                                      }}
+                                      title="View card"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </Card>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -1075,50 +1344,73 @@ export default function BuilderPage() {
                             No attachments found.
                           </p>
                         ) : (
-                          filteredAttachments.map((a) => (
+                          filteredAttachments.map((a) => {
+                            const isDuplicate = a.character && usedCharacterAttachmentNames.has(a.name);
+                            return (
                             <Card
                               key={a.id}
-                              hover
-                              padding="sm"
-                              onClick={() =>
-                                setAttachModal({
-                                  open: true,
-                                  attachmentId: a.id,
-                                })
-                              }
+                              hover={!isDuplicate}
+                              padding="none"
+                              className={`overflow-hidden ${isDuplicate ? "opacity-40 cursor-not-allowed" : ""}`}
+                              onClick={() => {
+                                if (!isDuplicate) {
+                                  setAttachModal({
+                                    open: true,
+                                    attachmentId: a.id,
+                                  });
+                                }
+                              }}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-medium text-stone-100 truncate">
-                                    {a.name}
-                                  </p>
-                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    {a.cost !== undefined && a.cost > 0 && (
-                                      <Badge variant="default" size="sm">
-                                        +{a.cost} pts
-                                      </Badge>
-                                    )}
-                                    <Badge variant="info" size="sm">
-                                      {a.tray}
-                                    </Badge>
+                              <div className="flex">
+                                {/* Character portrait thumbnail */}
+                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                  <img
+                                    src={getPortraitUrl(a.id)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0 p-2">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                        {a.name}
+                                      </p>
+                                      {isDuplicate && (
+                                        <p className="text-[9px] text-red-400 mt-0.5">Character — already added</p>
+                                      )}
+                                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        {a.cost !== undefined && a.cost > 0 && (
+                                          <Badge variant="default" size="sm">
+                                            +{a.cost} pts
+                                          </Badge>
+                                        )}
+                                        <Badge variant="info" size="sm">
+                                          {a.tray}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                    <button
+                                      className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCard(a.id, a.name, a.faction);
+                                      }}
+                                      title="View card"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    </button>
                                   </div>
                                 </div>
-                                <button
-                                  className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openCard(a.id, a.name, a.faction);
-                                  }}
-                                  title="View card"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                </button>
                               </div>
                             </Card>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -1277,26 +1569,55 @@ export default function BuilderPage() {
         title="Attach to which unit?"
         size="sm"
       >
-        {army.units.length === 0 ? (
-          <p className="text-sm text-stone-400">
-            Add a unit first before attaching.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {resolvedUnits.map(({ slot, unit }) => (
-              <Card
-                key={slot.id}
-                hover
-                padding="sm"
-                onClick={() => handleAttachToSlot(slot.id)}
-              >
-                <p className="text-sm text-stone-100">
-                  {unit?.name ?? slot.unitId}
+        {(() => {
+          const selectedAtt = attachModal.attachmentId ? findAttachmentById(attachModal.attachmentId) : null;
+          const compatibleUnits = resolvedUnits.filter(({ unit }) => {
+            if (!unit || !selectedAtt) return true;
+            return unit.tray === selectedAtt.tray;
+          });
+          if (army.units.length === 0) {
+            return (
+              <p className="text-sm text-stone-400">
+                Add a unit first before attaching.
+              </p>
+            );
+          }
+          if (compatibleUnits.length === 0) {
+            return (
+              <div className="space-y-2">
+                <p className="text-sm text-stone-400">
+                  No compatible units. This attachment requires a <span className="text-amber-400 font-medium">{selectedAtt?.tray}</span> unit.
                 </p>
-              </Card>
-            ))}
-          </div>
-        )}
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-2">
+              {selectedAtt && (
+                <p className="text-[10px] text-stone-500 mb-1">
+                  Showing only {selectedAtt.tray} units (matching attachment tray type)
+                </p>
+              )}
+              {compatibleUnits.map(({ slot, unit }) => (
+                <Card
+                  key={slot.id}
+                  hover
+                  padding="sm"
+                  onClick={() => handleAttachToSlot(slot.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-stone-100">
+                      {unit?.name ?? slot.unitId}
+                    </p>
+                    {unit && (
+                      <Badge variant="info" size="sm">{unit.tray}</Badge>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
       </Modal>
 
       {/* ---- MODAL: Pick unit slot for commander ---- */}
@@ -1308,26 +1629,53 @@ export default function BuilderPage() {
         title="Attach commander to which unit?"
         size="sm"
       >
-        {army.units.length === 0 ? (
-          <p className="text-sm text-stone-400">
-            Add a unit first before selecting a commander.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {resolvedUnits.map(({ slot, unit }) => (
-              <Card
-                key={slot.id}
-                hover
-                padding="sm"
-                onClick={() => handleCommanderToSlot(slot.id)}
-              >
-                <p className="text-sm text-stone-100">
-                  {unit?.name ?? slot.unitId}
+        {(() => {
+          const selectedCmd = commanderModal.commanderId ? findAttachmentById(commanderModal.commanderId) : null;
+          const compatibleUnits = resolvedUnits.filter(({ unit }) => {
+            if (!unit || !selectedCmd) return true;
+            return unit.tray === selectedCmd.tray;
+          });
+          if (army.units.length === 0) {
+            return (
+              <p className="text-sm text-stone-400">
+                Add a unit first before selecting a commander.
+              </p>
+            );
+          }
+          if (compatibleUnits.length === 0) {
+            return (
+              <p className="text-sm text-stone-400">
+                No compatible units. The commander requires a <span className="text-amber-400 font-medium">{selectedCmd?.tray}</span> unit.
+              </p>
+            );
+          }
+          return (
+            <div className="space-y-2">
+              {selectedCmd && (
+                <p className="text-[10px] text-stone-500 mb-1">
+                  Showing only {selectedCmd.tray} units (matching commander tray type)
                 </p>
-              </Card>
-            ))}
-          </div>
-        )}
+              )}
+              {compatibleUnits.map(({ slot, unit }) => (
+                <Card
+                  key={slot.id}
+                  hover
+                  padding="sm"
+                  onClick={() => handleCommanderToSlot(slot.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-stone-100">
+                      {unit?.name ?? slot.unitId}
+                    </p>
+                    {unit && (
+                      <Badge variant="info" size="sm">{unit.tray}</Badge>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
       </Modal>
 
       {/* ---- MODAL: Commander Picker (from left panel button) ---- */}
@@ -1440,50 +1788,91 @@ export default function BuilderPage() {
         size="lg"
       >
         {slotAttachments.length === 0 ? (
-          <p className="text-sm text-stone-400">
-            No attachments available for this faction.
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-stone-400">
+              No compatible attachments available.
+            </p>
+            {pickAttachForSlot && (() => {
+              const slot = army.units.find((s) => s.id === pickAttachForSlot);
+              const targetUnit = slot ? findUnitById(slot.unitId) : null;
+              return targetUnit ? (
+                <p className="text-[10px] text-stone-500">
+                  This unit requires <span className="text-amber-400">{targetUnit.tray}</span> attachments.
+                </p>
+              ) : null;
+            })()}
+          </div>
         ) : (
           <div className="space-y-2 max-h-[50vh] overflow-y-auto">
-            {slotAttachments.map((a) => (
+            {pickAttachForSlot && (() => {
+              const slot = army.units.find((s) => s.id === pickAttachForSlot);
+              const targetUnit = slot ? findUnitById(slot.unitId) : null;
+              return targetUnit ? (
+                <p className="text-[10px] text-stone-500 mb-1">
+                  Showing {targetUnit.tray} attachments for {targetUnit.name}
+                </p>
+              ) : null;
+            })()}
+            {slotAttachments.map((a) => {
+              const isDuplicate = a.character && usedCharacterAttachmentNames.has(a.name);
+              return (
               <Card
                 key={a.id}
-                hover
-                padding="sm"
-                onClick={() => handlePickAttachment(a.id)}
+                hover={!isDuplicate}
+                padding="none"
+                className={`overflow-hidden ${isDuplicate ? "opacity-40 cursor-not-allowed" : ""}`}
+                onClick={() => { if (!isDuplicate) handlePickAttachment(a.id); }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-stone-100 truncate">
-                      {a.name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {a.cost !== undefined && a.cost > 0 && (
-                        <Badge variant="default" size="sm">
-                          +{a.cost} pts
-                        </Badge>
-                      )}
-                      <Badge variant="info" size="sm">
-                        {a.tray}
-                      </Badge>
+                <div className="flex">
+                  {/* Character portrait thumbnail */}
+                  <div className="w-12 h-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                    <img
+                      src={getPortraitUrl(a.id)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 p-2">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-stone-100 truncate">
+                          {a.name}
+                        </p>
+                        {isDuplicate && (
+                          <p className="text-[9px] text-red-400">Character — already added</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {a.cost !== undefined && a.cost > 0 && (
+                            <Badge variant="default" size="sm">
+                              +{a.cost} pts
+                            </Badge>
+                          )}
+                          <Badge variant="info" size="sm">
+                            {a.tray}
+                          </Badge>
+                        </div>
+                      </div>
+                      <button
+                        className="shrink-0 p-1.5 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCard(a.id, a.name, a.faction);
+                        }}
+                        title="View card"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                  <button
-                    className="shrink-0 p-1.5 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openCard(a.id, a.name, a.faction);
-                    }}
-                    title="View card"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </Modal>
