@@ -42,6 +42,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { CardImageModal, useCardViewer } from "@/components/ui/CardImageModal";
 import { HoverCardPreview } from "@/components/ui/HoverCardPreview";
+import { importWarCouncilCode } from "@/lib/utils/warcouncil-import";
 
 // ---------------------------------------------------------------------------
 // Types for modal state
@@ -113,6 +114,12 @@ export default function BuilderPage() {
 
   // Preview list modal
   const [previewList, setPreviewList] = useState<ArmyList | null>(null);
+
+  // WarCouncil import modal
+  const [wcImportOpen, setWcImportOpen] = useState(false);
+  const [wcCode, setWcCode] = useState("");
+  const [wcError, setWcError] = useState<string | null>(null);
+  const [wcWarnings, setWcWarnings] = useState<string[]>([]);
 
   // Search states for browser tabs
   const [unitSearch, setUnitSearch] = useState("");
@@ -498,7 +505,98 @@ export default function BuilderPage() {
               })}
             </div>
           </section>
+
+          {/* Import from WarCouncil */}
+          <section className="mt-6 pt-6 border-t border-stone-700">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold text-stone-200">
+                Import from WarCouncil
+              </h2>
+            </div>
+            <p className="text-sm text-stone-400 mb-3">
+              Paste a share code from the WarCouncil app to import an existing army list.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setWcImportOpen(true);
+                setWcCode("");
+                setWcError(null);
+                setWcWarnings([]);
+              }}
+            >
+              Paste WarCouncil Code
+            </Button>
+          </section>
         </div>
+
+        {/* ---- MODAL: WarCouncil Import ---- */}
+        <Modal
+          isOpen={wcImportOpen}
+          onClose={() => setWcImportOpen(false)}
+          title="Import from WarCouncil"
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-stone-400">
+              In the WarCouncil app, go to your army &rarr; tap Share &rarr; copy
+              the code. Paste it below.
+            </p>
+            <textarea
+              className="w-full h-24 rounded-lg border border-stone-600 bg-stone-800 text-stone-100 text-sm p-3 focus:outline-none focus:ring-2 focus:ring-amber-600 placeholder-stone-500"
+              placeholder="Paste WarCouncil share code here..."
+              value={wcCode}
+              onChange={(e) => {
+                setWcCode(e.target.value);
+                setWcError(null);
+                setWcWarnings([]);
+              }}
+            />
+            {wcError && (
+              <p className="text-xs text-red-400">{wcError}</p>
+            )}
+            {wcWarnings.length > 0 && (
+              <div className="space-y-1">
+                {wcWarnings.map((w, i) => (
+                  <p key={i} className="text-xs text-yellow-400">⚠ {w}</p>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setWcImportOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  const result = importWarCouncilCode(wcCode);
+                  if (!result.success) {
+                    setWcError(result.error ?? "Import failed.");
+                    setWcWarnings(result.warnings);
+                    return;
+                  }
+                  setWcWarnings(result.warnings);
+                  if (result.army) {
+                    // Save the imported list and load it into the builder
+                    entityStorage.save(result.army);
+                    loadArmy(result.army);
+                    setWcImportOpen(false);
+                    setSaveMsg("Imported from WarCouncil!");
+                    setTimeout(() => setSaveMsg(null), 2500);
+                  }
+                }}
+              >
+                Import
+              </Button>
+            </div>
+          </div>
+        </Modal>
 
         {/* ---- MODAL: List Preview ---- */}
         <Modal
