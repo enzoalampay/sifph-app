@@ -4,7 +4,7 @@ import {
   findNCUById,
   findAttachmentById,
 } from "../data/loader";
-import { calculateTotalCost, calculateNeutralCost, getNeutralPointsCap } from "./costs";
+import { calculateTotalCost, calculateNeutralCost, getNeutralPointsCap, calculateEffectiveTotalCost } from "./costs";
 
 // Master validator
 export function validateArmy(army: ArmyList): ArmyValidationError[] {
@@ -38,11 +38,11 @@ function validateStructure(army: ArmyList): ArmyValidationError[] {
     });
   }
 
-  const totalCost = calculateTotalCost(army);
-  if (totalCost > army.pointLimit) {
+  const effectiveCost = calculateEffectiveTotalCost(army);
+  if (effectiveCost > army.pointLimit) {
     errors.push({
       code: "OVER_POINTS",
-      message: `Army costs ${totalCost}/${army.pointLimit} points (${totalCost - army.pointLimit} over).`,
+      message: `Army costs ${effectiveCost}/${army.pointLimit} points (${effectiveCost - army.pointLimit} over).`,
       severity: "error",
     });
   }

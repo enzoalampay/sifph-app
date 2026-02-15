@@ -96,6 +96,8 @@ export default function BuilderPage() {
     remaining,
     neutralCost,
     neutralCap,
+    freeAttachmentCap,
+    freeAttachmentUsed,
     tacticsDeck,
     validationErrors,
     errors,
@@ -261,17 +263,20 @@ export default function BuilderPage() {
   );
 
   const filteredUnits = useMemo(
-    () => searchFilter(availableUnits, unitSearch, (u) => u.name),
+    () => searchFilter(availableUnits, unitSearch, (u) => u.name)
+      .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name)),
     [availableUnits, unitSearch]
   );
 
   const filteredNCUs = useMemo(
-    () => searchFilter(availableNCUs, ncuSearch, (n) => n.name),
+    () => searchFilter(availableNCUs, ncuSearch, (n) => n.name)
+      .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name)),
     [availableNCUs, ncuSearch]
   );
 
   const filteredAttachments = useMemo(
-    () => searchFilter(availableAttachments, attachSearch, (a) => a.name),
+    () => searchFilter(availableAttachments, attachSearch, (a) => a.name)
+      .sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || a.name.localeCompare(b.name)),
     [availableAttachments, attachSearch]
   );
 
@@ -655,6 +660,12 @@ export default function BuilderPage() {
           {army.faction !== "neutral" && (
             <span className={`text-xs ${neutralCost > neutralCap ? "text-red-400" : "text-stone-500"}`}>
               Neutral: {neutralCost}/{neutralCap}
+            </span>
+          )}
+
+          {army.faction !== "neutral" && (
+            <span className={`text-xs ${freeAttachmentUsed > 0 ? "text-emerald-400" : "text-stone-500"}`}>
+              Free Att: {freeAttachmentUsed}/{freeAttachmentCap}
             </span>
           )}
 

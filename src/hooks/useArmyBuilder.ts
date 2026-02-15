@@ -4,7 +4,15 @@ import { useState, useCallback, useMemo } from "react";
 import { ArmyList, createEmptyArmyList, ComputedTacticsDeck, ArmyValidationError } from "@/lib/types/army-list";
 import { FactionId } from "@/lib/types/game-data";
 import * as builder from "@/lib/army/builder";
-import { calculateTotalCost, getRemainingPoints, calculateNeutralCost, getNeutralPointsCap } from "@/lib/army/costs";
+import {
+  calculateTotalCost,
+  getRemainingPoints,
+  calculateNeutralCost,
+  getNeutralPointsCap,
+  getFreeAttachmentPoints,
+  calculateFactionAttachmentCost,
+  calculateEffectiveTotalCost,
+} from "@/lib/army/costs";
 import { assembleTacticsDeck } from "@/lib/army/tactics";
 import { validateArmy } from "@/lib/army/validator";
 
@@ -71,10 +79,13 @@ export function useArmyBuilder(initialList?: ArmyList) {
   }, []);
 
   // Computed values
-  const totalCost = useMemo(() => (army ? calculateTotalCost(army) : 0), [army]);
-  const remaining = useMemo(() => (army ? getRemainingPoints(army) : 0), [army]);
+  const rawTotalCost = useMemo(() => (army ? calculateTotalCost(army) : 0), [army]);
+  const totalCost = useMemo(() => (army ? calculateEffectiveTotalCost(army) : 0), [army]);
+  const remaining = useMemo(() => (army ? army.pointLimit - calculateEffectiveTotalCost(army) : 0), [army]);
   const neutralCost = useMemo(() => (army ? calculateNeutralCost(army) : 0), [army]);
   const neutralCap = useMemo(() => (army ? getNeutralPointsCap(army.pointLimit) : 0), [army]);
+  const freeAttachmentCap = useMemo(() => (army ? getFreeAttachmentPoints(army.pointLimit) : 0), [army]);
+  const freeAttachmentUsed = useMemo(() => (army ? Math.min(calculateFactionAttachmentCost(army), getFreeAttachmentPoints(army.pointLimit)) : 0), [army]);
   const tacticsDeck: ComputedTacticsDeck | null = useMemo(
     () => (army ? assembleTacticsDeck(army) : null),
     [army]
@@ -115,10 +126,13 @@ export function useArmyBuilder(initialList?: ArmyList) {
     setName,
     setPointLimit,
     // Computed
+    rawTotalCost,
     totalCost,
     remaining,
     neutralCost,
     neutralCap,
+    freeAttachmentCap,
+    freeAttachmentUsed,
     tacticsDeck,
     validationErrors,
     errors,
