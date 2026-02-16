@@ -7,7 +7,7 @@ import { useArmyBuilder } from "@/hooks/useArmyBuilder";
 import { useEntityStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { ArmyList } from "@/lib/types/army-list";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   FactionId,
   ALL_FACTION_IDS,
@@ -75,6 +75,7 @@ export default function BuilderPage() {
   const params = useParams<{ listId?: string }>();
   const router = useRouter();
   const listId = params?.listId ?? null;
+  const { user } = useAuth();
 
   // Army builder hook
   const {
@@ -170,20 +171,30 @@ export default function BuilderPage() {
 
   const doSave = useCallback(() => {
     if (!army) return;
+    if (!user) {
+      setSaveMsg("Login to save");
+      setTimeout(() => setSaveMsg(null), 2500);
+      return;
+    }
     entityStorage.save({ ...army, updatedAt: new Date().toISOString() });
     setSaveMsg("Saved!");
     setTimeout(() => setSaveMsg(null), 1500);
-  }, [army, entityStorage]);
+  }, [army, entityStorage, user]);
 
   const handleSave = useCallback(() => {
     if (!army) return;
+    if (!user) {
+      setSaveMsg("Login to save");
+      setTimeout(() => setSaveMsg(null), 2500);
+      return;
+    }
     // If commander is selected but not attached to a unit, prompt
     if (army.commanderId && !army.commanderUnitSlotId) {
       setSaveConfirmOpen(true);
       return;
     }
     doSave();
-  }, [army, doSave]);
+  }, [army, doSave, user]);
 
   const handleBack = useCallback(() => {
     setArmy(null); // clear army state
@@ -583,11 +594,16 @@ export default function BuilderPage() {
                   }
                   setWcWarnings(result.warnings);
                   if (result.army) {
-                    // Save the imported list and load it into the builder
-                    entityStorage.save(result.army);
+                    // Load into the builder (always works)
                     loadArmy(result.army);
+                    // Save to storage only if logged in
+                    if (user) {
+                      entityStorage.save(result.army);
+                      setSaveMsg("Imported from WarCouncil!");
+                    } else {
+                      setSaveMsg("Imported! Login to save.");
+                    }
                     setWcImportOpen(false);
-                    setSaveMsg("Imported from WarCouncil!");
                     setTimeout(() => setSaveMsg(null), 2500);
                   }
                 }}
@@ -720,7 +736,6 @@ export default function BuilderPage() {
     totalCost > army.pointLimit ? "text-red-400" : "text-green-400";
 
   return (
-    <ProtectedRoute>
     <div className="min-h-screen bg-stone-900">
       {/* ---- Top Bar ---- */}
       <div className="sticky top-0 z-40 border-b border-stone-700 bg-stone-900/95 backdrop-blur-sm">
@@ -785,6 +800,11 @@ export default function BuilderPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {!user && (
+              <span className="text-[10px] text-stone-500">
+                <a href="/login" className="text-amber-500 hover:text-amber-400 underline">Login</a> to save
+              </span>
+            )}
             <Button variant="primary" size="sm" onClick={handleSave}>
               {saveMsg ?? "Save"}
             </Button>
@@ -1986,6 +2006,5 @@ export default function BuilderPage() {
         )}
       </Modal>
     </div>
-    </ProtectedRoute>
   );
 }
