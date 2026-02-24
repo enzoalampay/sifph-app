@@ -8,6 +8,7 @@ import {
   GameNCU,
   GameAttachment,
   GameTactics,
+  AbilityDefinition,
 } from "@/lib/types/game-data";
 import {
   getAllUnits,
@@ -15,6 +16,7 @@ import {
   getAllAttachments,
   getAllTactics,
   getAbility,
+  getAllAbilities,
 } from "@/lib/data/loader";
 import { FACTIONS, getFactionInfo } from "@/lib/data/factions";
 import { ALL_GAME_MODES } from "@/lib/types/tournament";
@@ -23,20 +25,34 @@ import { Badge } from "@/components/ui/Badge";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CardImageModal, useCardViewer } from "@/components/ui/CardImageModal";
+import { getPortraitUrl } from "@/lib/utils/card-images";
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type WikiTab = "units" | "attachments" | "ncus" | "tactics" | "gamemodes";
+type WikiTab = "units" | "attachments" | "ncus" | "tactics" | "abilities" | "orders" | "gamemodes";
 
 const WIKI_TABS: { id: WikiTab; label: string }[] = [
   { id: "units", label: "Units" },
   { id: "attachments", label: "Attachments" },
   { id: "ncus", label: "NCUs" },
   { id: "tactics", label: "Tactics" },
+  { id: "abilities", label: "Abilities" },
+  { id: "orders", label: "Orders" },
   { id: "gamemodes", label: "Game Modes" },
 ];
+
+interface WikiAbilityEntry {
+  name: string;
+  displayName: string;
+  definition: AbilityDefinition;
+  units: GameUnit[];
+  attachments: GameAttachment[];
+  factions: Set<FactionId>;
+}
 
 // ---------------------------------------------------------------------------
 // Faction filter pills
@@ -45,37 +61,66 @@ const WIKI_TABS: { id: WikiTab; label: string }[] = [
 function FactionFilter({
   selected,
   onToggle,
+  onSelectAll,
+  onDeselectAll,
 }: {
   selected: Set<FactionId>;
   onToggle: (fid: FactionId) => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
 }) {
+  const allSelected = selected.size === ALL_FACTION_IDS.length;
+  const noneSelected = selected.size === 0;
   return (
-    <div className="flex flex-wrap gap-1.5 mb-4">
-      {ALL_FACTION_IDS.map((fid) => {
-        const fi = FACTIONS[fid];
-        const active = selected.has(fid);
-        return (
-          <button
-            key={fid}
-            onClick={() => onToggle(fid)}
-            className={`
-              flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all
-              ${
-                active
-                  ? "border-amber-600 bg-amber-900/30 text-amber-300"
-                  : "border-stone-700 bg-stone-800/50 text-stone-500 hover:text-stone-300 hover:border-stone-600"
-              }
-            `}
-          >
-            <img
-              src={fi.crestUrl}
-              alt={fi.shortName}
-              className="w-4 h-4 object-contain"
-            />
-            {fi.shortName}
-          </button>
-        );
-      })}
+    <div>
+      <div className="flex items-center gap-2 mb-1.5">
+        <button
+          onClick={onSelectAll}
+          disabled={allSelected}
+          className={`text-[10px] font-medium uppercase tracking-wide transition-colors ${
+            allSelected ? "text-stone-600 cursor-default" : "text-amber-500 hover:text-amber-400"
+          }`}
+        >
+          Select All
+        </button>
+        <span className="text-stone-700">|</span>
+        <button
+          onClick={onDeselectAll}
+          disabled={noneSelected}
+          className={`text-[10px] font-medium uppercase tracking-wide transition-colors ${
+            noneSelected ? "text-stone-600 cursor-default" : "text-amber-500 hover:text-amber-400"
+          }`}
+        >
+          Deselect All
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {ALL_FACTION_IDS.map((fid) => {
+          const fi = FACTIONS[fid];
+          const active = selected.has(fid);
+          return (
+            <button
+              key={fid}
+              onClick={() => onToggle(fid)}
+              className={`
+                flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all
+                ${
+                  active
+                    ? "border-amber-600 bg-amber-900/30 text-amber-300"
+                    : "border-stone-700 bg-stone-800/50 text-stone-500 hover:text-stone-300 hover:border-stone-600"
+                }
+              `}
+            >
+              <img
+                src={fi.crestUrl}
+                alt={fi.shortName}
+                className="w-4 h-4 object-contain"
+              />
+              {fi.shortName}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -168,6 +213,9 @@ export default function WikiPage() {
     });
   };
 
+  const handleSelectAll = () => setFactionFilter(new Set(ALL_FACTION_IDS));
+  const handleDeselectAll = () => setFactionFilter(new Set());
+
   // Data
   const allUnits = useMemo(() => getAllUnits(), []);
   const allNCUs = useMemo(() => getAllNCUs(), []);
@@ -219,6 +267,84 @@ export default function WikiPage() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [allTactics, factionFilter, search]);
 
+  // Build ability & order entries with possessor cross-references
+  const { abilityEntries, orderEntries } = useMemo(() => {
+    const abilitiesMap = getAllAbilities();
+    // Build reverse map: UPPERCASE ability name → possessors
+    const possessorMap = new Map<string, { units: GameUnit[]; attachments: GameAttachment[] }>();
+
+    for (const unit of allUnits) {
+      for (const aName of unit.abilities) {
+        const key = aName.toUpperCase();
+        if (!possessorMap.has(key)) possessorMap.set(key, { units: [], attachments: [] });
+        possessorMap.get(key)!.units.push(unit);
+      }
+    }
+    for (const att of allAttachments) {
+      for (const aName of att.abilities) {
+        const key = aName.toUpperCase();
+        if (!possessorMap.has(key)) possessorMap.set(key, { units: [], attachments: [] });
+        possessorMap.get(key)!.attachments.push(att);
+      }
+    }
+
+    const abilities: WikiAbilityEntry[] = [];
+    const orders: WikiAbilityEntry[] = [];
+
+    for (const [name, definition] of Object.entries(abilitiesMap)) {
+      const possessors = possessorMap.get(name) ?? { units: [], attachments: [] };
+      const factions = new Set<FactionId>();
+      for (const u of possessors.units) factions.add(u.faction);
+      for (const a of possessors.attachments) factions.add(a.faction);
+
+      const isOrder = name.startsWith("ORDER: ");
+      const displayName = isOrder ? name.slice(7) : name;
+
+      const entry: WikiAbilityEntry = {
+        name,
+        displayName,
+        definition,
+        units: possessors.units,
+        attachments: possessors.attachments,
+        factions,
+      };
+
+      if (isOrder) {
+        orders.push(entry);
+      } else {
+        abilities.push(entry);
+      }
+    }
+
+    abilities.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    orders.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+    return { abilityEntries: abilities, orderEntries: orders };
+  }, [allUnits, allAttachments]);
+
+  // Filter abilities by search and faction
+  const filteredAbilities = useMemo(() => {
+    return abilityEntries.filter((entry) => {
+      const matchesSearch =
+        !search || entry.displayName.toLowerCase().includes(search.toLowerCase());
+      const matchesFaction =
+        entry.factions.size === 0 ||
+        [...entry.factions].some((f) => factionFilter.has(f));
+      return matchesSearch && matchesFaction;
+    });
+  }, [abilityEntries, factionFilter, search]);
+
+  const filteredOrders = useMemo(() => {
+    return orderEntries.filter((entry) => {
+      const matchesSearch =
+        !search || entry.displayName.toLowerCase().includes(search.toLowerCase());
+      const matchesFaction =
+        entry.factions.size === 0 ||
+        [...entry.factions].some((f) => factionFilter.has(f));
+      return matchesSearch && matchesFaction;
+    });
+  }, [orderEntries, factionFilter, search]);
+
   const toggleExpanded = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
@@ -245,7 +371,7 @@ export default function WikiPage() {
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`
-                px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
+                px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors
                 ${
                   activeTab === tab.id
                     ? "border-amber-500 text-amber-400"
@@ -270,6 +396,8 @@ export default function WikiPage() {
             <FactionFilter
               selected={factionFilter}
               onToggle={handleToggleFaction}
+              onSelectAll={handleSelectAll}
+              onDeselectAll={handleDeselectAll}
             />
           </div>
         )}
@@ -299,13 +427,13 @@ export default function WikiPage() {
                       padding="none"
                       className="overflow-hidden"
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-stretch">
                         <div
                           className="w-1 shrink-0 self-stretch"
                           style={{ backgroundColor: fi.color }}
                         />
-                        <div className="flex-1 min-w-0 p-3">
-                          <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                          <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(u.id)}
@@ -321,36 +449,47 @@ export default function WikiPage() {
                               <Badge variant="default" size="sm">
                                 {u.cost} pts
                               </Badge>
-                              <Badge variant="info" size="sm">
-                                {u.tray}
+                              <Badge variant="default" size="sm">
+                                {capitalize(u.tray)}
                               </Badge>
                             </div>
-                            <button
-                              className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                              onClick={() =>
-                                openCard(u.id, u.name, u.faction)
-                              }
-                              title="View card"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <div className="w-10 self-stretch overflow-hidden rounded-sm">
+                                <img
+                                  src={getPortraitUrl(u.id)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              </div>
+                              <button
+                                className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                onClick={() =>
+                                  openCard(u.id, u.name, u.faction)
+                                }
+                                title="View card"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                />
-                              </svg>
-                            </button>
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
 
                           {isExpanded && (
@@ -432,13 +571,13 @@ export default function WikiPage() {
                       padding="none"
                       className="overflow-hidden"
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-stretch">
                         <div
                           className="w-1 shrink-0 self-stretch"
                           style={{ backgroundColor: fi.color }}
                         />
-                        <div className="flex-1 min-w-0 p-3">
-                          <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                          <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(a.id)}
@@ -461,8 +600,8 @@ export default function WikiPage() {
                                   Free
                                 </Badge>
                               )}
-                              <Badge variant="info" size="sm">
-                                {a.tray}
+                              <Badge variant="default" size="sm">
+                                {capitalize(a.tray)}
                               </Badge>
                               {a.commander && (
                                 <Badge variant="warning" size="sm">
@@ -470,32 +609,43 @@ export default function WikiPage() {
                                 </Badge>
                               )}
                             </div>
-                            <button
-                              className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                              onClick={() =>
-                                openCard(a.id, a.name, a.faction)
-                              }
-                              title="View card"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            <div className="flex items-center gap-1 shrink-0">
+                              <div className="w-10 self-stretch overflow-hidden rounded-sm">
+                                <img
+                                  src={getPortraitUrl(a.id)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              </div>
+                              <button
+                                className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                onClick={() =>
+                                  openCard(a.id, a.name, a.faction)
+                                }
+                                title="View card"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                 />
                               </svg>
-                            </button>
+                              </button>
+                            </div>
                           </div>
 
                           {a.title && (
@@ -510,7 +660,7 @@ export default function WikiPage() {
                                 label="Faction"
                                 value={fi.displayName}
                               />
-                              <DetailRow label="Tray" value={a.tray} />
+                              <DetailRow label="Tray" value={capitalize(a.tray)} />
                               {a.commander && (
                                 <DetailRow label="Type" value="Commander" />
                               )}
@@ -572,13 +722,13 @@ export default function WikiPage() {
                       padding="none"
                       className="overflow-hidden"
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-stretch">
                         <div
                           className="w-1 shrink-0 self-stretch"
                           style={{ backgroundColor: fi.color }}
                         />
-                        <div className="flex-1 min-w-0 p-3">
-                          <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                          <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(n.id)}
@@ -595,32 +745,43 @@ export default function WikiPage() {
                                 {n.cost} pts
                               </Badge>
                             </div>
-                            <button
-                              className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                              onClick={() =>
-                                openCard(n.id, n.name, n.faction)
-                              }
-                              title="View card"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <div className="w-10 self-stretch overflow-hidden rounded-sm">
+                                <img
+                                  src={getPortraitUrl(n.id)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              </div>
+                              <button
+                                className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                onClick={() =>
+                                  openCard(n.id, n.name, n.faction)
+                                }
+                                title="View card"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                />
-                              </svg>
-                            </button>
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
 
                           {n.title && (
@@ -706,7 +867,7 @@ export default function WikiPage() {
                           className="w-1 shrink-0 self-stretch"
                           style={{ backgroundColor: fi.color }}
                         />
-                        <div className="flex-1 min-w-0 p-3">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
                           <div className="flex items-center justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
@@ -787,6 +948,244 @@ export default function WikiPage() {
                             </div>
                           )}
                         </div>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================= */}
+        {/* ABILITIES TAB                                                  */}
+        {/* ============================================================= */}
+        {activeTab === "abilities" && (
+          <div>
+            <p className="text-xs text-stone-500 mb-3">
+              {filteredAbilities.length} abilit{filteredAbilities.length !== 1 ? "ies" : "y"}
+            </p>
+            <div className="space-y-2">
+              {filteredAbilities.length === 0 ? (
+                <Card padding="md">
+                  <p className="text-sm text-stone-500 text-center py-6">
+                    No abilities match your search or filter.
+                  </p>
+                </Card>
+              ) : (
+                filteredAbilities.map((entry) => {
+                  const isExpanded = expandedId === `ability-${entry.name}`;
+                  return (
+                    <Card
+                      key={entry.name}
+                      padding="none"
+                      className="overflow-hidden"
+                    >
+                      <div className="p-3">
+                        <div
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => toggleExpanded(`ability-${entry.name}`)}
+                        >
+                          <p className="text-sm font-medium text-stone-100">
+                            {entry.displayName}
+                          </p>
+                          {entry.definition.trigger && (
+                            <Badge variant="warning" size="sm">
+                              Triggered
+                            </Badge>
+                          )}
+                          <span className="text-[10px] text-stone-600 ml-auto">
+                            {entry.units.length + entry.attachments.length} possessor{entry.units.length + entry.attachments.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-3 pt-3 border-t border-stone-800 space-y-3">
+                            {entry.definition.trigger && (
+                              <div>
+                                <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-0.5">
+                                  Trigger
+                                </p>
+                                <p className="text-xs text-amber-400">
+                                  {entry.definition.trigger}
+                                </p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-0.5">
+                                Effect
+                              </p>
+                              {entry.definition.effect.map((line, i) => (
+                                <p
+                                  key={i}
+                                  className="text-[11px] text-stone-400 leading-relaxed"
+                                >
+                                  {line}
+                                </p>
+                              ))}
+                            </div>
+                            {(entry.units.length > 0 || entry.attachments.length > 0) && (
+                              <div>
+                                <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-1">
+                                  Possessed By
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {entry.units.map((u) => {
+                                    const fi = getFactionInfo(u.faction);
+                                    return (
+                                      <span
+                                        key={u.id}
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                      >
+                                        <img
+                                          src={fi.crestUrl}
+                                          alt={fi.shortName}
+                                          className="w-3 h-3 object-contain"
+                                        />
+                                        {u.name}
+                                      </span>
+                                    );
+                                  })}
+                                  {entry.attachments.map((a) => {
+                                    const fi = getFactionInfo(a.faction);
+                                    return (
+                                      <span
+                                        key={a.id}
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                      >
+                                        <img
+                                          src={fi.crestUrl}
+                                          alt={fi.shortName}
+                                          className="w-3 h-3 object-contain"
+                                        />
+                                        {a.name}
+                                        <span className="text-stone-600">(Att)</span>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================= */}
+        {/* ORDERS TAB                                                     */}
+        {/* ============================================================= */}
+        {activeTab === "orders" && (
+          <div>
+            <p className="text-xs text-stone-500 mb-3">
+              {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}
+            </p>
+            <div className="space-y-2">
+              {filteredOrders.length === 0 ? (
+                <Card padding="md">
+                  <p className="text-sm text-stone-500 text-center py-6">
+                    No orders match your search or filter.
+                  </p>
+                </Card>
+              ) : (
+                filteredOrders.map((entry) => {
+                  const isExpanded = expandedId === `order-${entry.name}`;
+                  return (
+                    <Card
+                      key={entry.name}
+                      padding="none"
+                      className="overflow-hidden"
+                    >
+                      <div className="p-3">
+                        <div
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => toggleExpanded(`order-${entry.name}`)}
+                        >
+                          <Badge variant="warning" size="sm">
+                            Order
+                          </Badge>
+                          <p className="text-sm font-medium text-stone-100">
+                            {entry.displayName}
+                          </p>
+                          <span className="text-[10px] text-stone-600 ml-auto">
+                            {entry.units.length + entry.attachments.length} possessor{entry.units.length + entry.attachments.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-3 pt-3 border-t border-stone-800 space-y-3">
+                            {entry.definition.trigger && (
+                              <div>
+                                <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-0.5">
+                                  Trigger
+                                </p>
+                                <p className="text-xs text-amber-400">
+                                  {entry.definition.trigger}
+                                </p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-0.5">
+                                Effect
+                              </p>
+                              {entry.definition.effect.map((line, i) => (
+                                <p
+                                  key={i}
+                                  className="text-[11px] text-stone-400 leading-relaxed"
+                                >
+                                  {line}
+                                </p>
+                              ))}
+                            </div>
+                            {(entry.units.length > 0 || entry.attachments.length > 0) && (
+                              <div>
+                                <p className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold mb-1">
+                                  Possessed By
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {entry.units.map((u) => {
+                                    const fi = getFactionInfo(u.faction);
+                                    return (
+                                      <span
+                                        key={u.id}
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                      >
+                                        <img
+                                          src={fi.crestUrl}
+                                          alt={fi.shortName}
+                                          className="w-3 h-3 object-contain"
+                                        />
+                                        {u.name}
+                                      </span>
+                                    );
+                                  })}
+                                  {entry.attachments.map((a) => {
+                                    const fi = getFactionInfo(a.faction);
+                                    return (
+                                      <span
+                                        key={a.id}
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                      >
+                                        <img
+                                          src={fi.crestUrl}
+                                          alt={fi.shortName}
+                                          className="w-3 h-3 object-contain"
+                                        />
+                                        {a.name}
+                                        <span className="text-stone-600">(Att)</span>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </Card>
                   );

@@ -116,7 +116,7 @@ export default function TournamentsPage() {
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-stone-900 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-stone-900 px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
       <PageHeader
         title="Tournaments"
         description={`${tournaments.length} tournament${tournaments.length !== 1 ? "s" : ""}`}

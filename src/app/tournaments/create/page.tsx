@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEntityStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { Tournament, createTournament } from "@/lib/types/tournament";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -21,12 +22,16 @@ const POINT_LIMIT_OPTIONS = [
 
 export default function CreateTournamentPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { save } = useEntityStorage<Tournament>(STORAGE_KEYS.TOURNAMENTS);
 
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [pointLimit, setPointLimit] = useState("40");
   const [numberOfRounds, setNumberOfRounds] = useState("3");
+  const [maxPlayers, setMaxPlayers] = useState("16");
+  const [requiredLists, setRequiredLists] = useState("1");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = useCallback((): boolean => {
@@ -45,27 +50,42 @@ export default function CreateTournamentPage() {
       newErrors.numberOfRounds = "Number of rounds must be between 1 and 8";
     }
 
+    const mp = parseInt(maxPlayers, 10);
+    if (isNaN(mp) || mp < 2 || mp > 128) {
+      newErrors.maxPlayers = "Max players must be between 2 and 128";
+    }
+
+    const rl = parseInt(requiredLists, 10);
+    if (isNaN(rl) || rl < 1 || rl > 5) {
+      newErrors.requiredLists = "Required lists must be between 1 and 5";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [name, date, numberOfRounds]);
+  }, [name, date, numberOfRounds, maxPlayers, requiredLists]);
 
   const handleCreate = useCallback(() => {
     if (!validate()) return;
+    if (!user) return;
 
-    const tournament = createTournament(
-      name.trim(),
+    const tournament = createTournament({
+      name: name.trim(),
       date,
-      parseInt(pointLimit, 10),
-      parseInt(numberOfRounds, 10)
-    );
+      pointLimit: parseInt(pointLimit, 10),
+      numberOfRounds: parseInt(numberOfRounds, 10),
+      description: description.trim(),
+      maxPlayers: parseInt(maxPlayers, 10),
+      requiredLists: parseInt(requiredLists, 10),
+      adminUserId: user.id,
+    });
 
     save(tournament);
     router.push(`/tournaments/${tournament.id}`);
-  }, [name, date, pointLimit, numberOfRounds, validate, save, router]);
+  }, [name, description, date, pointLimit, numberOfRounds, maxPlayers, requiredLists, validate, save, router, user]);
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-stone-900 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-stone-900 px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
       <Link
         href="/tournaments"
         className="inline-flex items-center gap-1 text-sm text-stone-400 hover:text-amber-500 transition-colors mb-4"
@@ -95,6 +115,18 @@ export default function CreateTournamentPage() {
             error={errors.name}
             autoFocus
           />
+
+          <div>
+            <label className="block text-sm font-medium text-stone-300 mb-1.5">
+              Description (optional)
+            </label>
+            <textarea
+              className="w-full rounded-md border border-stone-600 bg-stone-800 px-3 py-2 text-sm text-stone-100 placeholder-stone-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[80px] resize-y"
+              placeholder="Tournament details, venue, format notes..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
 
           <Input
             label="Date"
@@ -126,6 +158,34 @@ export default function CreateTournamentPage() {
                 setErrors((prev) => ({ ...prev, numberOfRounds: "" }));
             }}
             error={errors.numberOfRounds}
+          />
+
+          <Input
+            label="Max Players"
+            type="number"
+            min={2}
+            max={128}
+            value={maxPlayers}
+            onChange={(e) => {
+              setMaxPlayers(e.target.value);
+              if (errors.maxPlayers)
+                setErrors((prev) => ({ ...prev, maxPlayers: "" }));
+            }}
+            error={errors.maxPlayers}
+          />
+
+          <Input
+            label="Required Lists per Player"
+            type="number"
+            min={1}
+            max={5}
+            value={requiredLists}
+            onChange={(e) => {
+              setRequiredLists(e.target.value);
+              if (errors.requiredLists)
+                setErrors((prev) => ({ ...prev, requiredLists: "" }));
+            }}
+            error={errors.requiredLists}
           />
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-700">

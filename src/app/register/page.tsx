@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { GiCrossedSwords } from "react-icons/gi";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -90,8 +91,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">⚔️</div>
-          <h1 className="text-3xl font-bold text-stone-100 mb-2">
+          <GiCrossedSwords className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+          <h1 className="text-3xl font-bold text-stone-100 mb-2 font-[family-name:var(--font-cinzel)]">
             Join SIFPH
           </h1>
           <p className="text-stone-400">

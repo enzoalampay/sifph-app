@@ -1,18 +1,20 @@
 import {
   Tournament,
   TournamentPlayer,
+  TournamentPlayerStatus,
   Round,
   Pairing,
   MatchResult,
   GameMode,
 } from "../types/tournament";
-import { calculateStandings, calculateTP } from "./standings";
+import { FactionId } from "../types/game-data";
+import { calculateStandings, calculateTP, calculateSP } from "./standings";
 import { generateSwissPairings, generateRandomPairings } from "./swiss";
 
 export function addPlayer(
   tournament: Tournament,
   playerId: string,
-  armyListId?: string
+  status: TournamentPlayerStatus = "pending"
 ): Tournament {
   if (tournament.players.some((p) => p.playerId === playerId)) {
     return tournament; // Already registered
@@ -20,13 +22,94 @@ export function addPlayer(
 
   const player: TournamentPlayer = {
     playerId,
-    armyListId,
+    status,
+    armyListIds: [],
     dropped: false,
   };
 
   return {
     ...tournament,
     players: [...tournament.players, player],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function acceptPlayer(
+  tournament: Tournament,
+  playerId: string
+): Tournament {
+  return {
+    ...tournament,
+    players: tournament.players.map((p) =>
+      p.playerId === playerId ? { ...p, status: "accepted" as const } : p
+    ),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function rejectPlayer(
+  tournament: Tournament,
+  playerId: string
+): Tournament {
+  return {
+    ...tournament,
+    players: tournament.players.map((p) =>
+      p.playerId === playerId ? { ...p, status: "rejected" as const } : p
+    ),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function toggleListsRevealed(tournament: Tournament): Tournament {
+  return {
+    ...tournament,
+    listsRevealed: !tournament.listsRevealed,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function setPlayerFaction(
+  tournament: Tournament,
+  playerId: string,
+  faction: FactionId
+): Tournament {
+  return {
+    ...tournament,
+    players: tournament.players.map((p) =>
+      p.playerId === playerId ? { ...p, faction } : p
+    ),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function addPlayerList(
+  tournament: Tournament,
+  playerId: string,
+  armyListId: string
+): Tournament {
+  return {
+    ...tournament,
+    players: tournament.players.map((p) => {
+      if (p.playerId !== playerId) return p;
+      if (p.armyListIds.includes(armyListId)) return p;
+      return { ...p, armyListIds: [...p.armyListIds, armyListId] };
+    }),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function removePlayerList(
+  tournament: Tournament,
+  playerId: string,
+  armyListId: string
+): Tournament {
+  return {
+    ...tournament,
+    players: tournament.players.map((p) =>
+      p.playerId === playerId
+        ? { ...p, armyListIds: p.armyListIds.filter((id) => id !== armyListId) }
+        : p
+    ),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -108,14 +191,14 @@ export function generatePairingsForRound(
   if (roundNumber === 1 && tournament.rounds.length === 0) {
     pairings = generateRandomPairings(
       tournament.players,
-      tournament.scoringScheme.byeTP
+      tournament.scoringScheme
     );
   } else {
     pairings = generateSwissPairings(
       tournament.players,
       tournament.rounds,
       standings,
-      tournament.scoringScheme.byeTP
+      tournament.scoringScheme
     );
   }
 
@@ -179,9 +262,13 @@ export function recordMatchResult(
         winnerId,
         player1VP,
         player2VP,
-        player1TP: calculateTP(scheme, isP1Winner, isDraw, player1VP, player2VP),
+        player1TP: calculateTP(scheme, isP1Winner, isDraw),
         player2TP: pairing.player2Id
-          ? calculateTP(scheme, isP2Winner, isDraw, player2VP, player1VP)
+          ? calculateTP(scheme, isP2Winner, isDraw)
+          : 0,
+        player1SP: calculateSP(isP1Winner, isDraw, player1VP, player2VP),
+        player2SP: pairing.player2Id
+          ? calculateSP(isP2Winner, isDraw, player2VP, player1VP)
           : 0,
         notes: extras?.notes,
         gameMode: extras?.gameMode,

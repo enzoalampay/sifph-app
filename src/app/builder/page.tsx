@@ -44,6 +44,8 @@ import { CardImageModal, useCardViewer } from "@/components/ui/CardImageModal";
 import { HoverCardPreview } from "@/components/ui/HoverCardPreview";
 import { importWarCouncilCode } from "@/lib/utils/warcouncil-import";
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 // ---------------------------------------------------------------------------
 // Types for modal state
 // ---------------------------------------------------------------------------
@@ -739,7 +741,7 @@ export default function BuilderPage() {
     <div className="min-h-screen bg-stone-900">
       {/* ---- Top Bar ---- */}
       <div className="sticky top-0 z-40 border-b border-stone-700 bg-stone-900/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex flex-wrap items-center gap-3">
+        <div className="mx-auto max-w-7xl px-3 py-2 sm:px-4 sm:py-3 flex flex-wrap items-center gap-3">
           <Button variant="ghost" size="sm" onClick={handleBack}>
             &larr; Back
           </Button>
@@ -769,16 +771,15 @@ export default function BuilderPage() {
           <span className={`text-sm font-semibold ${costColor}`}>
             {totalCost}/{army.pointLimit} pts
           </span>
-
           {army.faction !== "neutral" && (
-            <span className={`text-xs ${neutralCost > neutralCap ? "text-red-400" : "text-stone-500"}`}>
-              Neutral: {neutralCost}/{neutralCap}
+            <span className="text-sm font-semibold text-emerald-400">
+              (Free: {freeAttachmentUsed}/{freeAttachmentCap})
             </span>
           )}
 
           {army.faction !== "neutral" && (
-            <span className={`text-xs ${freeAttachmentUsed > 0 ? "text-emerald-400" : "text-stone-500"}`}>
-              Free Att: {freeAttachmentUsed}/{freeAttachmentCap}
+            <span className={`text-xs ${neutralCost > neutralCap ? "text-red-400" : "text-stone-500"}`}>
+              Neutral: {neutralCost}/{neutralCap}
             </span>
           )}
 
@@ -813,9 +814,9 @@ export default function BuilderPage() {
       </div>
 
       {/* ---- Two Column Layout ---- */}
-      <div className="mx-auto max-w-7xl px-4 py-6 flex flex-col lg:flex-row gap-6">
+      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 flex flex-col lg:flex-row gap-4 sm:gap-6">
         {/* ---- LEFT: Your Army ---- */}
-        <div className="flex-1 min-w-0 space-y-6">
+        <div className="flex-1 min-w-0 space-y-4 sm:space-y-6">
           <h2 className="text-lg font-semibold text-stone-100">Your Army</h2>
 
           {/* Commander Section */}
@@ -985,8 +986,8 @@ export default function BuilderPage() {
                                   </Badge>
                                 )}
                                 {unit && (
-                                  <Badge variant="info" size="sm">
-                                    {unit.tray}
+                                  <Badge variant="default" size="sm">
+                                    {capitalize(unit.tray)}
                                   </Badge>
                                 )}
                               </div>
@@ -1310,7 +1311,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
                                   <img
                                     src={getPortraitUrl(u.id)}
                                     alt=""
@@ -1332,8 +1333,8 @@ export default function BuilderPage() {
                                         <Badge variant="default" size="sm">
                                           {u.cost} pts
                                         </Badge>
-                                        <Badge variant="info" size="sm">
-                                          {u.tray}
+                                        <Badge variant="default" size="sm">
+                                          {capitalize(u.tray)}
                                         </Badge>
                                         {u.character && (
                                           <Badge variant="warning" size="sm">
@@ -1400,7 +1401,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
                                   <img
                                     src={getPortraitUrl(n.id)}
                                     alt=""
@@ -1492,7 +1493,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 h-16 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
                                   <img
                                     src={getPortraitUrl(a.id)}
                                     alt=""
@@ -1516,8 +1517,8 @@ export default function BuilderPage() {
                                             +{a.cost} pts
                                           </Badge>
                                         )}
-                                        <Badge variant="info" size="sm">
-                                          {a.tray}
+                                        <Badge variant="default" size="sm">
+                                          {capitalize(a.tray)}
                                         </Badge>
                                       </div>
                                     </div>
@@ -1715,7 +1716,7 @@ export default function BuilderPage() {
             return (
               <div className="space-y-2">
                 <p className="text-sm text-stone-400">
-                  No compatible units. This attachment requires a <span className="text-amber-400 font-medium">{selectedAtt?.tray}</span> unit.
+                  No compatible units. This attachment requires a <span className="text-amber-400 font-medium">{selectedAtt?.tray ? capitalize(selectedAtt.tray) : ""}</span> unit.
                 </p>
               </div>
             );
@@ -1724,7 +1725,7 @@ export default function BuilderPage() {
             <div className="space-y-2">
               {selectedAtt && (
                 <p className="text-[10px] text-stone-500 mb-1">
-                  Showing only {selectedAtt.tray} units (matching attachment tray type)
+                  Showing only {capitalize(selectedAtt.tray)} units (matching attachment tray type)
                 </p>
               )}
               {compatibleUnits.map(({ slot, unit }) => (
@@ -1739,7 +1740,7 @@ export default function BuilderPage() {
                       {unit?.name ?? slot.unitId}
                     </p>
                     {unit && (
-                      <Badge variant="info" size="sm">{unit.tray}</Badge>
+                      <Badge variant="default" size="sm">{capitalize(unit.tray)}</Badge>
                     )}
                   </div>
                 </Card>
@@ -1774,7 +1775,7 @@ export default function BuilderPage() {
           if (compatibleUnits.length === 0) {
             return (
               <p className="text-sm text-stone-400">
-                No compatible units. The commander requires a <span className="text-amber-400 font-medium">{selectedCmd?.tray}</span> unit.
+                No compatible units. The commander requires a <span className="text-amber-400 font-medium">{selectedCmd?.tray ? capitalize(selectedCmd.tray) : ""}</span> unit.
               </p>
             );
           }
@@ -1782,7 +1783,7 @@ export default function BuilderPage() {
             <div className="space-y-2">
               {selectedCmd && (
                 <p className="text-[10px] text-stone-500 mb-1">
-                  Showing only {selectedCmd.tray} units (matching commander tray type)
+                  Showing only {capitalize(selectedCmd.tray)} units (matching commander tray type)
                 </p>
               )}
               {compatibleUnits.map(({ slot, unit }) => (
@@ -1797,7 +1798,7 @@ export default function BuilderPage() {
                       {unit?.name ?? slot.unitId}
                     </p>
                     {unit && (
-                      <Badge variant="info" size="sm">{unit.tray}</Badge>
+                      <Badge variant="default" size="sm">{capitalize(unit.tray)}</Badge>
                     )}
                   </div>
                 </Card>
@@ -1926,7 +1927,7 @@ export default function BuilderPage() {
               const targetUnit = slot ? findUnitById(slot.unitId) : null;
               return targetUnit ? (
                 <p className="text-[10px] text-stone-500">
-                  This unit requires <span className="text-amber-400">{targetUnit.tray}</span> attachments.
+                  This unit requires <span className="text-amber-400">{capitalize(targetUnit.tray)}</span> attachments.
                 </p>
               ) : null;
             })()}
@@ -1938,7 +1939,7 @@ export default function BuilderPage() {
               const targetUnit = slot ? findUnitById(slot.unitId) : null;
               return targetUnit ? (
                 <p className="text-[10px] text-stone-500 mb-1">
-                  Showing {targetUnit.tray} attachments for {targetUnit.name}
+                  Showing {capitalize(targetUnit.tray)} attachments for {targetUnit.name}
                 </p>
               ) : null;
             })()}
@@ -1978,8 +1979,8 @@ export default function BuilderPage() {
                               +{a.cost} pts
                             </Badge>
                           )}
-                          <Badge variant="info" size="sm">
-                            {a.tray}
+                          <Badge variant="default" size="sm">
+                            {capitalize(a.tray)}
                           </Badge>
                         </div>
                       </div>

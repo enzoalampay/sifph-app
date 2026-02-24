@@ -11,39 +11,41 @@ import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { getFactionInfo } from "@/lib/data/factions";
 import { Badge } from "@/components/ui/Badge";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { GiScrollUnfurled, GiTrophy, GiKnightBanner, GiChest, GiSpellBook } from "react-icons/gi";
+import { IconType } from "react-icons";
 
-const quickActions = [
+const quickActions: { href: string; icon: IconType; title: string; description: string; color: string }[] = [
   {
     href: "/builder",
-    icon: "📜",
+    icon: GiScrollUnfurled,
     title: "Build Army List",
     description: "Create a new army list for your next battle",
     color: "bg-amber-900/20 border-amber-800/30",
   },
   {
     href: "/tournaments/create",
-    icon: "🏆",
+    icon: GiTrophy,
     title: "Create Tournament",
     description: "Set up a new tournament event",
     color: "bg-purple-900/20 border-purple-800/30",
   },
   {
     href: "/players",
-    icon: "👤",
+    icon: GiKnightBanner,
     title: "Manage Players",
     description: "Add and manage player profiles",
     color: "bg-blue-900/20 border-blue-800/30",
   },
   {
     href: "/collection",
-    icon: "📦",
+    icon: GiChest,
     title: "My Collection",
     description: "Track your model collection",
     color: "bg-green-900/20 border-green-800/30",
   },
   {
     href: "/wiki",
-    icon: "📖",
+    icon: GiSpellBook,
     title: "Wiki",
     description: "Browse units, tactics, and game rules",
     color: "bg-stone-800/40 border-stone-700/30",
@@ -73,53 +75,56 @@ export default function DashboardPage() {
     <ProtectedRoute>
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center py-8">
-        <h1 className="text-4xl font-bold text-stone-100 mb-2">
+      <div className="text-center py-4 sm:py-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-stone-100 mb-2 font-[family-name:var(--font-cinzel)] tracking-wide">
           SIFPH
         </h1>
-        <p className="text-stone-400 text-lg">
+        <p className="text-stone-400 text-sm sm:text-lg">
           A Song of Ice and Fire: TMG — Tournament Manager & List Builder
         </p>
-        <p className="text-stone-500 text-sm mt-1">
+        <p className="text-stone-500 text-xs sm:text-sm mt-1">
           Song of Ice and Fire Philippines
         </p>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {quickActions.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <Card hover className={`h-full ${action.color}`}>
-              <div className="text-3xl mb-3">{action.icon}</div>
-              <h3 className="font-semibold text-stone-100">{action.title}</h3>
-              <p className="text-sm text-stone-400 mt-1">
-                {action.description}
-              </p>
-            </Card>
-          </Link>
-        ))}
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.href} href={action.href}>
+              <Card hover className={`h-full ${action.color}`}>
+                <Icon className="w-7 h-7 sm:w-8 sm:h-8 mb-2 sm:mb-3 text-amber-400/80" />
+                <h3 className="font-semibold text-stone-100">{action.title}</h3>
+                <p className="text-sm text-stone-400 mt-1">
+                  {action.description}
+                </p>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Stats Row */}
       {(listsLoaded || tournamentsLoaded || playersLoaded) && (
         <div className="grid grid-cols-3 gap-4">
           <Card className="text-center">
-            <div className="text-3xl font-bold text-amber-400">
+            <div className="text-2xl sm:text-3xl font-bold text-amber-400">
               {armyLists.length}
             </div>
-            <div className="text-sm text-stone-400">Army Lists</div>
+            <div className="text-xs sm:text-sm text-stone-400">Army Lists</div>
           </Card>
           <Card className="text-center">
-            <div className="text-3xl font-bold text-purple-400">
+            <div className="text-2xl sm:text-3xl font-bold text-purple-400">
               {tournaments.length}
             </div>
-            <div className="text-sm text-stone-400">Tournaments</div>
+            <div className="text-xs sm:text-sm text-stone-400">Tournaments</div>
           </Card>
           <Card className="text-center">
-            <div className="text-3xl font-bold text-blue-400">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-400">
               {players.length}
             </div>
-            <div className="text-sm text-stone-400">Players</div>
+            <div className="text-xs sm:text-sm text-stone-400">Players</div>
           </Card>
         </div>
       )}
@@ -127,7 +132,7 @@ export default function DashboardPage() {
       {/* Active Tournaments */}
       {activeTournaments.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-stone-100 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-stone-100 mb-4">
             Active Tournaments
           </h2>
           <div className="grid gap-3">
@@ -158,7 +163,7 @@ export default function DashboardPage() {
       {recentLists.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-stone-100">
+            <h2 className="text-lg sm:text-xl font-semibold text-stone-100">
               Recent Army Lists
             </h2>
             <Link href="/builder">

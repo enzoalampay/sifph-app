@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "./UserMenu";
+import { GiCrossedSwords, GiScrollUnfurled, GiTrophy, GiKnightBanner, GiSpellBook } from "react-icons/gi";
+import { IconType } from "react-icons";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: "⚔️" },
-  { href: "/builder", label: "List Builder", icon: "📜" },
-  { href: "/tournaments", label: "Tournaments", icon: "🏆" },
-  { href: "/players", label: "Players", icon: "👤" },
-  { href: "/collection", label: "Collection", icon: "📦" },
-  { href: "/wiki", label: "Wiki", icon: "📖" },
+const navItems: { href: string; label: string; icon: IconType }[] = [
+  { href: "/", label: "Dashboard", icon: GiCrossedSwords },
+  { href: "/builder", label: "List Builder", icon: GiScrollUnfurled },
+  { href: "/tournaments", label: "Tournaments", icon: GiTrophy },
+  { href: "/players", label: "Players", icon: GiKnightBanner },
+  { href: "/wiki", label: "Wiki", icon: GiSpellBook },
 ];
 
 export function Navbar() {
@@ -22,8 +23,8 @@ export function Navbar() {
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">⚔️</span>
-            <span className="text-lg font-bold text-stone-100 group-hover:text-amber-400 transition-colors">
+            <GiCrossedSwords className="w-5 h-5 text-amber-400" />
+            <span className="text-lg font-bold text-stone-100 group-hover:text-amber-400 transition-colors font-[family-name:var(--font-cinzel)]">
               SIFPH
             </span>
           </Link>
@@ -35,6 +36,7 @@ export function Navbar() {
                 item.href === "/"
                   ? pathname === "/"
                   : pathname.startsWith(item.href);
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -48,7 +50,7 @@ export function Navbar() {
                     }
                   `}
                 >
-                  <span className="text-base">{item.icon}</span>
+                  <Icon className="w-4 h-4" />
                   {item.label}
                 </Link>
               );
@@ -71,12 +73,13 @@ export function Navbar() {
               item.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(item.href);
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors
+                  flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors
                   ${
                     isActive
                       ? "bg-amber-900/30 text-amber-400"
@@ -84,7 +87,7 @@ export function Navbar() {
                   }
                 `}
               >
-                <span>{item.icon}</span>
+                <Icon className="w-3.5 h-3.5" />
                 {item.label}
               </Link>
             );

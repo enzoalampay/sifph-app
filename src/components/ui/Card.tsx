@@ -21,7 +21,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         className={`
           rounded-lg border border-stone-700/50 bg-stone-800/80 backdrop-blur-sm
-          ${hover ? "hover:border-stone-600 hover:bg-stone-800 transition-all cursor-pointer" : ""}
+          ${hover ? "hover:border-stone-600 hover:border-t-amber-700/50 hover:bg-stone-800 transition-all cursor-pointer" : ""}
           ${paddingClasses[padding]}
           ${className}
         `}

@@ -52,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
         `}
       >
         {title && (
-          <div className="flex items-center justify-between border-b border-stone-700 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-stone-700 px-4 py-3 sm:px-6 sm:py-4">
             <h2 className="text-lg font-semibold text-stone-100">{title}</h2>
             <button
               onClick={onClose}
@@ -68,7 +68,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
             </button>
           </div>
         )}
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

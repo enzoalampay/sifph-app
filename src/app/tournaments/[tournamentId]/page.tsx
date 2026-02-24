@@ -4,13 +4,22 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEntityStorage } from "@/hooks/useLocalStorage";
+import { useAuth } from "@/contexts/AuthContext";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { Player } from "@/lib/types/player";
-import { Tournament, PlayerStanding, GameMode, ALL_GAME_MODES } from "@/lib/types/tournament";
+import { FactionId, ALL_FACTION_IDS } from "@/lib/types/game-data";
+import {
+  Tournament,
+  PlayerStanding,
+  GameMode,
+  ALL_GAME_MODES,
+  normalizeTournament,
+  TournamentPlayer,
+} from "@/lib/types/tournament";
 import { ArmyList } from "@/lib/types/army-list";
 import { FACTIONS, getFactionInfo } from "@/lib/data/factions";
 import { Select } from "@/components/ui/Select";
-import { calculateStandings } from "@/lib/tournament/standings";
+import { calculateStandings, getVictoryLabel } from "@/lib/tournament/standings";
 import * as tm from "@/lib/tournament/manager";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -18,10 +27,9 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-type TabView = "standings" | "rounds" | "players";
+type TabView = "standings" | "rounds" | "players" | "lists";
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -35,6 +43,17 @@ function StatusBadge({ status }: { status: Tournament["status"] }) {
       return <Badge variant="warning">Draft</Badge>;
     case "completed":
       return <Badge variant="default">Completed</Badge>;
+  }
+}
+
+function PlayerStatusBadge({ status }: { status: TournamentPlayer["status"] }) {
+  switch (status) {
+    case "accepted":
+      return <Badge variant="success" size="sm">Accepted</Badge>;
+    case "pending":
+      return <Badge variant="warning" size="sm">Pending</Badge>;
+    case "rejected":
+      return <Badge variant="error" size="sm">Rejected</Badge>;
   }
 }
 
@@ -52,6 +71,7 @@ function RankBadge({ rank }: { rank: number }) {
 export default function TournamentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const tournamentId = params.tournamentId as string;
 
   const {
@@ -64,9 +84,15 @@ export default function TournamentDetailPage() {
     STORAGE_KEYS.ARMY_LISTS
   );
 
-  const tournament = useMemo(
-    () => tournaments.find((t) => t.id === tournamentId) ?? null,
-    [tournaments, tournamentId]
+  const tournament = useMemo(() => {
+    const raw = tournaments.find((t) => t.id === tournamentId);
+    if (!raw) return null;
+    return normalizeTournament(raw as unknown as Record<string, unknown>);
+  }, [tournaments, tournamentId]);
+
+  const isAdmin = useMemo(
+    () => !!(user && tournament && tournament.adminUserId === user.id),
+    [user, tournament]
   );
 
   const playerNameMap = useMemo(() => {
@@ -80,6 +106,20 @@ export default function TournamentDetailPage() {
     for (const al of armyLists) map.set(al.id, al);
     return map;
   }, [armyLists]);
+
+  // ---- Categorized players ----
+  const pendingPlayers = useMemo(
+    () => (tournament?.players.filter((p) => p.status === "pending") ?? []),
+    [tournament]
+  );
+  const acceptedPlayers = useMemo(
+    () => (tournament?.players.filter((p) => p.status === "accepted") ?? []),
+    [tournament]
+  );
+  const rejectedPlayers = useMemo(
+    () => (tournament?.players.filter((p) => p.status === "rejected") ?? []),
+    [tournament]
+  );
 
   // ---- View state ----
   const [activeTab, setActiveTab] = useState<TabView>("standings");
@@ -100,6 +140,10 @@ export default function TournamentDetailPage() {
   const [resultP1ListId, setResultP1ListId] = useState("");
   const [resultP2ListId, setResultP2ListId] = useState("");
 
+  // Faction + list assignment modal
+  const [factionModalPlayer, setFactionModalPlayer] = useState<string | null>(null);
+  const [listModalPlayer, setListModalPlayer] = useState<string | null>(null);
+
   // Sync selectedRound when rounds change
   useEffect(() => {
     if (tournament && tournament.rounds.length > 0) {
@@ -112,7 +156,6 @@ export default function TournamentDetailPage() {
   const standings = useMemo<PlayerStanding[]>(() => {
     if (!tournament) return [];
     const raw = calculateStandings(tournament);
-    // Resolve player names
     return raw.map((s) => ({
       ...s,
       playerName: playerNameMap.get(s.playerId) ?? "Unknown",
@@ -130,6 +173,19 @@ export default function TournamentDetailPage() {
     return players.filter((p) => !registeredIds.has(p.id));
   }, [tournament, players]);
 
+  // Lists for a player being assigned
+  const listModalPlayerData = useMemo(() => {
+    if (!tournament || !listModalPlayer) return null;
+    return tournament.players.find((p) => p.playerId === listModalPlayer) ?? null;
+  }, [tournament, listModalPlayer]);
+
+  const availableListsForPlayer = useMemo(() => {
+    if (!listModalPlayerData) return [];
+    const faction = listModalPlayerData.faction;
+    if (!faction) return armyLists;
+    return armyLists.filter((al) => al.faction === faction);
+  }, [listModalPlayerData, armyLists]);
+
   // ---- Helpers to save tournament ----
   const updateTournament = useCallback(
     (updated: Tournament) => {
@@ -141,7 +197,8 @@ export default function TournamentDetailPage() {
   // ---- Actions ----
   const handleStartTournament = useCallback(() => {
     if (!tournament) return;
-    if (tournament.players.length < 2) return;
+    const accepted = tournament.players.filter((p) => p.status === "accepted");
+    if (accepted.length < 2) return;
     const updated = tm.startTournament(tournament);
     updateTournament(updated);
   }, [tournament, updateTournament]);
@@ -164,7 +221,26 @@ export default function TournamentDetailPage() {
   const handleAddPlayer = useCallback(
     (playerId: string) => {
       if (!tournament) return;
-      const updated = tm.addPlayer(tournament, playerId);
+      // Admin adds directly as accepted
+      const updated = tm.addPlayer(tournament, playerId, "accepted");
+      updateTournament(updated);
+    },
+    [tournament, updateTournament]
+  );
+
+  const handleAcceptPlayer = useCallback(
+    (playerId: string) => {
+      if (!tournament) return;
+      const updated = tm.acceptPlayer(tournament, playerId);
+      updateTournament(updated);
+    },
+    [tournament, updateTournament]
+  );
+
+  const handleRejectPlayer = useCallback(
+    (playerId: string) => {
+      if (!tournament) return;
+      const updated = tm.rejectPlayer(tournament, playerId);
       updateTournament(updated);
     },
     [tournament, updateTournament]
@@ -187,6 +263,47 @@ export default function TournamentDetailPage() {
     },
     [tournament, updateTournament]
   );
+
+  const handleToggleListsRevealed = useCallback(() => {
+    if (!tournament) return;
+    const updated = tm.toggleListsRevealed(tournament);
+    updateTournament(updated);
+  }, [tournament, updateTournament]);
+
+  const handleSetFaction = useCallback(
+    (playerId: string, faction: FactionId) => {
+      if (!tournament) return;
+      const updated = tm.setPlayerFaction(tournament, playerId, faction);
+      updateTournament(updated);
+      setFactionModalPlayer(null);
+    },
+    [tournament, updateTournament]
+  );
+
+  const handleAddList = useCallback(
+    (playerId: string, listId: string) => {
+      if (!tournament) return;
+      const updated = tm.addPlayerList(tournament, playerId, listId);
+      updateTournament(updated);
+    },
+    [tournament, updateTournament]
+  );
+
+  const handleRemoveList = useCallback(
+    (playerId: string, listId: string) => {
+      if (!tournament) return;
+      const updated = tm.removePlayerList(tournament, playerId, listId);
+      updateTournament(updated);
+    },
+    [tournament, updateTournament]
+  );
+
+  // Sign up (non-admin)
+  const handleSignUp = useCallback(() => {
+    if (!tournament || !user) return;
+    const updated = tm.addPlayer(tournament, user.id, "pending");
+    updateTournament(updated);
+  }, [tournament, user, updateTournament]);
 
   const openResultModal = useCallback(
     (pairingId: string, roundNumber: number) => {
@@ -246,7 +363,7 @@ export default function TournamentDetailPage() {
 
   if (!tournament) {
     return (
-      <div className="min-h-screen bg-stone-900 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-stone-900 px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
         <Link
           href="/tournaments"
           className="inline-flex items-center gap-1 text-sm text-stone-400 hover:text-amber-500 transition-colors mb-4"
@@ -271,6 +388,16 @@ export default function TournamentDetailPage() {
   const canGenerate = tm.canGenerateNextRound(tournament);
   const nextRoundNumber = tm.getNextRoundNumber(tournament);
 
+  // Check if current user is signed up
+  const myRegistration = user
+    ? tournament.players.find((p) => p.playerId === user.id)
+    : null;
+  const canSignUp =
+    user &&
+    !myRegistration &&
+    tournament.status === "draft" &&
+    acceptedPlayers.length + pendingPlayers.length < tournament.maxPlayers;
+
   // ---- Get pairing's info for result modal ----
   const resultPairing = currentRound?.pairings.find((p) => p.id === resultPairingId) ?? null;
   const resultP1Name = resultPairing ? (playerNameMap.get(resultPairing.player1Id) ?? "Player 1") : "Player 1";
@@ -278,9 +405,11 @@ export default function TournamentDetailPage() {
     ? (playerNameMap.get(resultPairing.player2Id) ?? "Player 2")
     : "BYE";
 
+  const tabs: TabView[] = ["standings", "players", "lists", "rounds"];
+
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-stone-900 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-stone-900 px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
       <Link
         href="/tournaments"
         className="inline-flex items-center gap-1 text-sm text-stone-400 hover:text-amber-500 transition-colors mb-4"
@@ -302,8 +431,14 @@ export default function TournamentDetailPage() {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-stone-100">{tournament.name}</h1>
               <StatusBadge status={tournament.status} />
+              {isAdmin && (
+                <Badge variant="info" size="sm">Admin</Badge>
+              )}
             </div>
-            <div className="mt-1 flex items-center gap-3 text-sm text-stone-400">
+            {tournament.description && (
+              <p className="mt-1 text-sm text-stone-400">{tournament.description}</p>
+            )}
+            <div className="mt-1 flex items-center gap-3 text-sm text-stone-400 flex-wrap">
               <span>
                 {new Date(tournament.date).toLocaleDateString(undefined, {
                   year: "numeric",
@@ -315,18 +450,31 @@ export default function TournamentDetailPage() {
               <span>{tournament.pointLimit} pts</span>
               <span className="text-stone-600">|</span>
               <span>{tournament.numberOfRounds} rounds</span>
+              <span className="text-stone-600">|</span>
+              <span>Max {tournament.maxPlayers} players</span>
+              {tournament.requiredLists > 1 && (
+                <>
+                  <span className="text-stone-600">|</span>
+                  <span>{tournament.requiredLists} lists required</span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
-            {tournament.status === "draft" && (
+            {canSignUp && (
+              <Button variant="secondary" onClick={handleSignUp}>
+                Sign Up
+              </Button>
+            )}
+            {isAdmin && tournament.status === "draft" && (
               <Button
                 onClick={handleStartTournament}
-                disabled={tournament.players.length < 2}
+                disabled={acceptedPlayers.length < 2}
               >
                 Start Tournament
               </Button>
             )}
-            {tournament.status === "active" && (
+            {isAdmin && tournament.status === "active" && (
               <Button variant="secondary" onClick={handleCompleteTournament}>
                 Complete Tournament
               </Button>
@@ -336,13 +484,13 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-stone-700 mb-6">
-        {(["standings", "rounds", "players"] as TabView[]).map((tab) => (
+      <div className="flex gap-1 border-b border-stone-700 mb-6 overflow-x-auto">
+        {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`
-              px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px
+              px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px whitespace-nowrap
               ${
                 activeTab === tab
                   ? "border-amber-500 text-amber-500"
@@ -371,14 +519,16 @@ export default function TournamentDetailPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-stone-700 text-stone-400">
-                      <th className="px-4 py-3 text-center font-medium w-12">#</th>
-                      <th className="px-4 py-3 text-left font-medium">Player</th>
-                      <th className="px-4 py-3 text-center font-medium">TP</th>
-                      <th className="px-4 py-3 text-center font-medium">VP+</th>
-                      <th className="px-4 py-3 text-center font-medium">VP-</th>
-                      <th className="px-4 py-3 text-center font-medium">Diff</th>
-                      <th className="px-4 py-3 text-center font-medium">W-D-L</th>
-                      <th className="px-4 py-3 text-center font-medium">SoS</th>
+                      <th className="px-3 py-3 text-center font-medium w-10">#</th>
+                      <th className="px-3 py-3 text-left font-medium">Player</th>
+                      <th className="px-3 py-3 text-center font-medium">TP</th>
+                      <th className="px-3 py-3 text-center font-medium">SP</th>
+                      <th className="px-3 py-3 text-center font-medium">VP+</th>
+                      <th className="px-3 py-3 text-center font-medium">VP-</th>
+                      <th className="px-3 py-3 text-center font-medium">Diff</th>
+                      <th className="px-3 py-3 text-center font-medium">Killed</th>
+                      <th className="px-3 py-3 text-center font-medium">W-D-L</th>
+                      <th className="px-3 py-3 text-center font-medium">SoS</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-800">
@@ -396,10 +546,10 @@ export default function TournamentDetailPage() {
                           key={s.playerId}
                           className={`hover:bg-stone-800/50 transition-colors ${rowHighlight}`}
                         >
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-3 py-3 text-center">
                             <RankBadge rank={s.rank} />
                           </td>
-                          <td className="px-4 py-3 text-stone-100 font-medium">
+                          <td className="px-3 py-3 text-stone-100 font-medium">
                             <Link
                               href={`/players/${s.playerId}`}
                               className="hover:text-amber-500 transition-colors"
@@ -407,13 +557,16 @@ export default function TournamentDetailPage() {
                               {s.playerName}
                             </Link>
                           </td>
-                          <td className="px-4 py-3 text-center text-amber-500 font-semibold">
+                          <td className="px-3 py-3 text-center text-amber-500 font-semibold">
                             {s.tournamentPoints}
                           </td>
-                          <td className="px-4 py-3 text-center text-stone-300">{s.vpScored}</td>
-                          <td className="px-4 py-3 text-center text-stone-300">{s.vpAllowed}</td>
+                          <td className="px-3 py-3 text-center text-stone-300">
+                            {s.secondaryPoints}
+                          </td>
+                          <td className="px-3 py-3 text-center text-stone-300">{s.vpScored}</td>
+                          <td className="px-3 py-3 text-center text-stone-300">{s.vpAllowed}</td>
                           <td
-                            className={`px-4 py-3 text-center font-medium ${
+                            className={`px-3 py-3 text-center font-medium ${
                               s.vpDiff > 0
                                 ? "text-green-400"
                                 : s.vpDiff < 0
@@ -424,10 +577,13 @@ export default function TournamentDetailPage() {
                             {s.vpDiff > 0 ? "+" : ""}
                             {s.vpDiff}
                           </td>
-                          <td className="px-4 py-3 text-center text-stone-300">
+                          <td className="px-3 py-3 text-center text-stone-300">
+                            {s.pointsDestroyed}
+                          </td>
+                          <td className="px-3 py-3 text-center text-stone-300">
                             {s.wins}-{s.draws}-{s.losses}
                           </td>
-                          <td className="px-4 py-3 text-center text-stone-400">
+                          <td className="px-3 py-3 text-center text-stone-400">
                             {s.sos.toFixed(1)}
                           </td>
                         </tr>
@@ -437,6 +593,269 @@ export default function TournamentDetailPage() {
                 </table>
               </div>
             </Card>
+          )}
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* PLAYERS VIEW                                                       */}
+      {/* ================================================================= */}
+      {activeTab === "players" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-stone-400">
+              {acceptedPlayers.length} accepted
+              {pendingPlayers.length > 0 && `, ${pendingPlayers.length} pending`}
+              {" / "}{tournament.maxPlayers} max
+            </p>
+            {isAdmin && tournament.status === "draft" && (
+              <Button size="sm" onClick={() => setAddPlayerModalOpen(true)}>
+                Add Player
+              </Button>
+            )}
+          </div>
+
+          {tournament.players.length === 0 ? (
+            <EmptyState
+              title="No Players Yet"
+              description={isAdmin ? "Add players to this tournament to get started." : "No one has signed up yet."}
+              action={
+                isAdmin && tournament.status === "draft" ? (
+                  <Button onClick={() => setAddPlayerModalOpen(true)}>Add Player</Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="space-y-4">
+              {/* Pending section */}
+              {pendingPlayers.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
+                    Pending ({pendingPlayers.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {pendingPlayers.map((tp) => {
+                      const name = playerNameMap.get(tp.playerId) ?? tp.playerId;
+                      return (
+                        <Card key={tp.playerId}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="font-medium text-stone-100 truncate">{name}</span>
+                              <PlayerStatusBadge status={tp.status} />
+                            </div>
+                            {isAdmin && (
+                              <div className="flex items-center gap-2 ml-2">
+                                <Button size="sm" onClick={() => handleAcceptPlayer(tp.playerId)}>
+                                  Accept
+                                </Button>
+                                <Button size="sm" variant="danger" onClick={() => handleRejectPlayer(tp.playerId)}>
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Accepted section */}
+              {acceptedPlayers.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
+                    Accepted ({acceptedPlayers.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {acceptedPlayers.map((tp) => {
+                      const name = playerNameMap.get(tp.playerId) ?? tp.playerId;
+                      const factionInfo = tp.faction ? getFactionInfo(tp.faction) : null;
+                      return (
+                        <Card key={tp.playerId}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Link
+                                href={`/players/${tp.playerId}`}
+                                className="font-medium text-stone-100 hover:text-amber-500 transition-colors truncate"
+                              >
+                                {name}
+                              </Link>
+                              {tp.dropped && <Badge variant="error" size="sm">Dropped</Badge>}
+                              {factionInfo && (
+                                <Badge variant="faction" size="sm" color={factionInfo.color}>
+                                  {factionInfo.shortName}
+                                </Badge>
+                              )}
+                              <span className="text-xs text-stone-500">
+                                {tp.armyListIds.length}/{tournament.requiredLists} lists
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-2">
+                              {isAdmin && tournament.status === "draft" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setFactionModalPlayer(tp.playerId)}
+                                  >
+                                    Faction
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setListModalPlayer(tp.playerId)}
+                                  >
+                                    Lists
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => handleRemovePlayer(tp.playerId)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </>
+                              )}
+                              {/* Players can manage their own faction/lists */}
+                              {!isAdmin && user && tp.playerId === user.id && tournament.status === "draft" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setFactionModalPlayer(tp.playerId)}
+                                  >
+                                    Faction
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setListModalPlayer(tp.playerId)}
+                                  >
+                                    Lists
+                                  </Button>
+                                </>
+                              )}
+                              {isAdmin && tournament.status === "active" && !tp.dropped && (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => handleDropPlayer(tp.playerId)}
+                                >
+                                  Drop
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Rejected section */}
+              {rejectedPlayers.length > 0 && isAdmin && (
+                <div>
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
+                    Rejected ({rejectedPlayers.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {rejectedPlayers.map((tp) => {
+                      const name = playerNameMap.get(tp.playerId) ?? tp.playerId;
+                      return (
+                        <Card key={tp.playerId}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="font-medium text-stone-400 truncate">{name}</span>
+                              <PlayerStatusBadge status={tp.status} />
+                            </div>
+                            <Button size="sm" variant="secondary" onClick={() => handleAcceptPlayer(tp.playerId)}>
+                              Accept
+                            </Button>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* LISTS VIEW                                                         */}
+      {/* ================================================================= */}
+      {activeTab === "lists" && (
+        <div>
+          {isAdmin && (
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm text-stone-400">
+                {tournament.listsRevealed ? "Lists are visible to all players" : "Lists are hidden from players"}
+              </p>
+              <Button size="sm" variant="secondary" onClick={handleToggleListsRevealed}>
+                {tournament.listsRevealed ? "Hide Lists" : "Reveal Lists"}
+              </Button>
+            </div>
+          )}
+
+          {!isAdmin && !tournament.listsRevealed ? (
+            <EmptyState
+              title="Lists Hidden"
+              description="Army lists are hidden until the tournament admin reveals them."
+            />
+          ) : (
+            <div>
+              {acceptedPlayers.length === 0 ? (
+                <EmptyState
+                  title="No Players"
+                  description="No accepted players to show lists for."
+                />
+              ) : (
+                <div className="space-y-3">
+                  {acceptedPlayers.map((tp) => {
+                    const name = playerNameMap.get(tp.playerId) ?? tp.playerId;
+                    const factionInfo = tp.faction ? getFactionInfo(tp.faction) : null;
+                    return (
+                      <Card key={tp.playerId}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="font-medium text-stone-100">{name}</span>
+                          {factionInfo && (
+                            <Badge variant="faction" size="sm" color={factionInfo.color}>
+                              {factionInfo.shortName}
+                            </Badge>
+                          )}
+                        </div>
+                        {tp.armyListIds.length === 0 ? (
+                          <p className="text-xs text-stone-500 italic">No lists registered</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {tp.armyListIds.map((listId) => {
+                              const list = armyListMap.get(listId);
+                              if (!list) return (
+                                <p key={listId} className="text-xs text-stone-500">Unknown list</p>
+                              );
+                              const listFaction = getFactionInfo(list.faction);
+                              return (
+                                <div key={listId} className="flex items-center gap-2 text-sm">
+                                  <Badge variant="faction" size="sm" color={listFaction.color}>
+                                    {listFaction.shortName}
+                                  </Badge>
+                                  <span className="text-stone-300">{list.name}</span>
+                                  <span className="text-stone-500 text-xs">{list.pointLimit}pts</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -477,7 +896,7 @@ export default function TournamentDetailPage() {
                 )}
               </button>
             ))}
-            {canGenerate && (
+            {isAdmin && canGenerate && (
               <Button size="sm" onClick={handleGenerateRound}>
                 Generate Round {nextRoundNumber}
               </Button>
@@ -509,7 +928,6 @@ export default function TournamentDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          {/* Player 1 */}
                           <span
                             className={`font-medium truncate ${
                               hasResult && pairing.result?.winnerId === pairing.player1Id
@@ -520,7 +938,6 @@ export default function TournamentDetailPage() {
                             {p1Name}
                           </span>
                           <span className="text-stone-600 text-xs">vs</span>
-                          {/* Player 2 or BYE */}
                           {isBye ? (
                             <span className="text-stone-500 italic">BYE</span>
                           ) : (
@@ -538,27 +955,32 @@ export default function TournamentDetailPage() {
 
                         {hasResult && (
                           <div className="mt-1.5 space-y-1">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm flex-wrap">
                               <span className="text-stone-300 font-mono">
                                 {pairing.result!.player1VP} - {pairing.result!.player2VP}
                               </span>
-                              {pairing.result!.winnerId === null && !isBye && (
-                                <Badge variant="warning" size="sm">
-                                  Draw
-                                </Badge>
-                              )}
-                              {isBye && (
-                                <Badge variant="info" size="sm">
-                                  BYE
-                                </Badge>
-                              )}
+                              <Badge
+                                variant={
+                                  isBye ? "info"
+                                    : pairing.result!.winnerId === null ? "warning"
+                                    : "success"
+                                }
+                                size="sm"
+                              >
+                                {isBye
+                                  ? "BYE"
+                                  : getVictoryLabel(pairing.result!.winnerId, pairing.result!.player1VP, pairing.result!.player2VP)
+                                }
+                              </Badge>
+                              <span className="text-[10px] text-stone-500">
+                                {pairing.result!.player1TP}/{pairing.result!.player1SP ?? 0} - {pairing.result!.player2TP}/{pairing.result!.player2SP ?? 0} TP/SP
+                              </span>
                               {pairing.result!.gameMode && (
                                 <Badge variant="default" size="sm">
                                   {pairing.result!.gameMode}
                                 </Badge>
                               )}
                             </div>
-                            {/* Extended details row */}
                             {(pairing.result!.player1PointsKilled !== undefined ||
                               pairing.result!.player2PointsKilled !== undefined ||
                               pairing.result!.player1ListId ||
@@ -589,7 +1011,7 @@ export default function TournamentDetailPage() {
                         )}
                       </div>
 
-                      {!hasResult && tournament.status === "active" && !isBye && (
+                      {!hasResult && isAdmin && tournament.status === "active" && !isBye && (
                         <Button
                           size="sm"
                           variant="secondary"
@@ -614,86 +1036,6 @@ export default function TournamentDetailPage() {
               title="Round Not Found"
               description="Select a round from the buttons above."
             />
-          )}
-        </div>
-      )}
-
-      {/* ================================================================= */}
-      {/* PLAYERS VIEW                                                       */}
-      {/* ================================================================= */}
-      {activeTab === "players" && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-stone-400">
-              {tournament.players.length} registered player
-              {tournament.players.length !== 1 ? "s" : ""}
-            </p>
-            {tournament.status === "draft" && (
-              <Button size="sm" onClick={() => setAddPlayerModalOpen(true)}>
-                Add Player
-              </Button>
-            )}
-          </div>
-
-          {tournament.players.length === 0 ? (
-            <EmptyState
-              title="No Players Registered"
-              description="Add players to this tournament to get started."
-              action={
-                tournament.status === "draft" ? (
-                  <Button onClick={() => setAddPlayerModalOpen(true)}>Add Player</Button>
-                ) : undefined
-              }
-            />
-          ) : (
-            <div className="space-y-2">
-              {tournament.players.map((tp) => {
-                const name = playerNameMap.get(tp.playerId) ?? "Unknown";
-                const armyList = tp.armyListId ? armyListMap.get(tp.armyListId) : null;
-                const factionInfo = armyList ? getFactionInfo(armyList.faction) : null;
-
-                return (
-                  <Card key={tp.playerId}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Link
-                          href={`/players/${tp.playerId}`}
-                          className="font-medium text-stone-100 hover:text-amber-500 transition-colors truncate"
-                        >
-                          {name}
-                        </Link>
-                        {tp.dropped && <Badge variant="error" size="sm">Dropped</Badge>}
-                        {factionInfo && (
-                          <Badge variant="faction" size="sm" color={factionInfo.color}>
-                            {factionInfo.shortName}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 ml-2">
-                        {tournament.status === "draft" && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => handleRemovePlayer(tp.playerId)}
-                          >
-                            Remove
-                          </Button>
-                        )}
-                        {tournament.status === "active" && !tp.dropped && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleDropPlayer(tp.playerId)}
-                          >
-                            Drop
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
           )}
         </div>
       )}
@@ -742,6 +1084,151 @@ export default function TournamentDetailPage() {
         )}
         <div className="flex justify-end pt-4">
           <Button variant="secondary" onClick={() => setAddPlayerModalOpen(false)}>
+            Done
+          </Button>
+        </div>
+      </Modal>
+
+      {/* ================================================================= */}
+      {/* FACTION SELECTION MODAL                                            */}
+      {/* ================================================================= */}
+      <Modal
+        isOpen={!!factionModalPlayer}
+        onClose={() => setFactionModalPlayer(null)}
+        title="Select Faction"
+      >
+        <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto">
+          {ALL_FACTION_IDS.map((fid) => {
+            const fi = getFactionInfo(fid);
+            const isSelected = factionModalPlayer
+              ? tournament.players.find((p) => p.playerId === factionModalPlayer)?.faction === fid
+              : false;
+            return (
+              <button
+                key={fid}
+                onClick={() => {
+                  if (factionModalPlayer) {
+                    handleSetFaction(factionModalPlayer, fid);
+                  }
+                }}
+                className={`
+                  rounded-md border px-3 py-2.5 text-sm font-medium transition-all text-center
+                  ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-700/30 text-amber-300"
+                      : "border-stone-600 bg-stone-800 text-stone-300 hover:border-stone-500"
+                  }
+                `}
+              >
+                {fi.displayName}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex justify-end pt-4">
+          <Button variant="secondary" onClick={() => setFactionModalPlayer(null)}>
+            Close
+          </Button>
+        </div>
+      </Modal>
+
+      {/* ================================================================= */}
+      {/* ARMY LIST ASSIGNMENT MODAL                                         */}
+      {/* ================================================================= */}
+      <Modal
+        isOpen={!!listModalPlayer}
+        onClose={() => setListModalPlayer(null)}
+        title="Manage Army Lists"
+      >
+        {listModalPlayerData && (
+          <div className="space-y-4">
+            {/* Currently assigned lists */}
+            {listModalPlayerData.armyListIds.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">
+                  Assigned ({listModalPlayerData.armyListIds.length}/{tournament.requiredLists})
+                </p>
+                <div className="space-y-2">
+                  {listModalPlayerData.armyListIds.map((listId) => {
+                    const list = armyListMap.get(listId);
+                    if (!list) return null;
+                    const fi = getFactionInfo(list.faction);
+                    return (
+                      <div
+                        key={listId}
+                        className="flex items-center justify-between rounded-md border border-stone-700 bg-stone-800 px-4 py-2"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Badge variant="faction" size="sm" color={fi.color}>
+                            {fi.shortName}
+                          </Badge>
+                          <span className="text-sm text-stone-200 truncate">{list.name}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleRemoveList(listModalPlayerData.playerId, listId)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Available lists to add */}
+            {listModalPlayerData.armyListIds.length < tournament.requiredLists && (
+              <div>
+                <p className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">
+                  Available Lists
+                  {listModalPlayerData.faction && (
+                    <span className="text-stone-500"> (filtered by {getFactionInfo(listModalPlayerData.faction).displayName})</span>
+                  )}
+                </p>
+                {availableListsForPlayer.length === 0 ? (
+                  <p className="text-sm text-stone-500 py-2">
+                    No matching saved lists found.{" "}
+                    <Link href="/builder" className="text-amber-500 hover:text-amber-400">
+                      Build a list first
+                    </Link>
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {availableListsForPlayer
+                      .filter((al) => !listModalPlayerData.armyListIds.includes(al.id))
+                      .map((al) => {
+                        const fi = getFactionInfo(al.faction);
+                        return (
+                          <div
+                            key={al.id}
+                            className="flex items-center justify-between rounded-md border border-stone-700 bg-stone-800 px-4 py-2"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Badge variant="faction" size="sm" color={fi.color}>
+                                {fi.shortName}
+                              </Badge>
+                              <span className="text-sm text-stone-200 truncate">{al.name}</span>
+                              <span className="text-xs text-stone-500">{al.pointLimit}pts</span>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddList(listModalPlayerData.playerId, al.id)}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="flex justify-end pt-4">
+          <Button variant="secondary" onClick={() => setListModalPlayer(null)}>
             Done
           </Button>
         </div>

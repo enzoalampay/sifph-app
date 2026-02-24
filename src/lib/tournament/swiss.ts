@@ -1,22 +1,23 @@
-import { Round, Pairing, TournamentPlayer, PlayerStanding } from "../types/tournament";
+import { Round, Pairing, TournamentPlayer, PlayerStanding, ScoringScheme, DEFAULT_SCORING_SCHEME } from "../types/tournament";
 import { generateId } from "../utils/id";
 
 export function generateSwissPairings(
   players: TournamentPlayer[],
   rounds: Round[],
   standings: PlayerStanding[],
-  byeTP: number = 5
+  scheme: ScoringScheme = DEFAULT_SCORING_SCHEME
 ): Pairing[] {
-  const activePlayers = players.filter((p) => !p.dropped);
+  const activePlayers = players.filter((p) => !p.dropped && p.status === "accepted");
   const standingMap = new Map(standings.map((s) => [s.playerId, s]));
 
-  // Sort by standing (best first)
+  // Sort by standing (best first): TP -> SP -> Points destroyed -> SoS
   const sorted = [...activePlayers].sort((a, b) => {
     const sa = standingMap.get(a.playerId);
     const sb = standingMap.get(b.playerId);
     if (!sa || !sb) return 0;
     if (sb.tournamentPoints !== sa.tournamentPoints) return sb.tournamentPoints - sa.tournamentPoints;
-    if (sb.vpDiff !== sa.vpDiff) return sb.vpDiff - sa.vpDiff;
+    if (sb.secondaryPoints !== sa.secondaryPoints) return sb.secondaryPoints - sa.secondaryPoints;
+    if (sb.pointsDestroyed !== sa.pointsDestroyed) return sb.pointsDestroyed - sa.pointsDestroyed;
     return sb.sos - sa.sos;
   });
 
@@ -64,7 +65,7 @@ export function generateSwissPairings(
   // Recursive pairing with backtracking
   const pairings = pairRecursive(sorted, previousOpponents, []);
 
-  // Add bye
+  // Add bye (Win + Crushing Victory)
   if (byePlayer) {
     pairings.push({
       id: generateId(),
@@ -74,8 +75,10 @@ export function generateSwissPairings(
         winnerId: byePlayer.playerId,
         player1VP: 0,
         player2VP: 0,
-        player1TP: byeTP,
+        player1TP: scheme.byeTP,
         player2TP: 0,
+        player1SP: scheme.byeSP,
+        player2SP: 0,
       },
     });
   }
@@ -138,9 +141,9 @@ function pairRecursive(
 // First round: random pairings
 export function generateRandomPairings(
   players: TournamentPlayer[],
-  byeTP: number = 5
+  scheme: ScoringScheme = DEFAULT_SCORING_SCHEME
 ): Pairing[] {
-  const activePlayers = players.filter((p) => !p.dropped);
+  const activePlayers = players.filter((p) => !p.dropped && p.status === "accepted");
   const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
 
   let byePlayer: TournamentPlayer | null = null;
@@ -166,8 +169,10 @@ export function generateRandomPairings(
         winnerId: byePlayer.playerId,
         player1VP: 0,
         player2VP: 0,
-        player1TP: byeTP,
+        player1TP: scheme.byeTP,
         player2TP: 0,
+        player1SP: scheme.byeSP,
+        player2SP: 0,
       },
     });
   }
