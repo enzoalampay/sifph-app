@@ -37,6 +37,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { StatLine } from "@/components/ui/StatLine";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
@@ -890,10 +891,9 @@ export default function PlaytestBuilderPage() {
                                 )}
                               </div>
                               {unit && (
-                                <p className="text-xs text-stone-500 mt-0.5">
-                                  DEF {unit.defense} &middot; MOR {unit.morale}{" "}
-                                  &middot; SPD {unit.speed}
-                                </p>
+                                <div className="mt-0.5">
+                                  <StatLine defense={unit.defense} morale={unit.morale} speed={unit.speed} size="xs" />
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1239,10 +1239,9 @@ export default function PlaytestBuilderPage() {
                                           </Badge>
                                         )}
                                       </div>
-                                      <p className="text-[10px] text-stone-500 mt-1">
-                                        DEF {u.defense} &middot; MOR {u.morale}{" "}
-                                        &middot; SPD {u.speed}
-                                      </p>
+                                      <div className="mt-1">
+                                        <StatLine defense={u.defense} morale={u.morale} speed={u.speed} size="xs" />
+                                      </div>
                                     </div>
                                     <button
                                       className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"

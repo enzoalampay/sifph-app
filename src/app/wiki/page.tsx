@@ -26,6 +26,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CardImageModal, useCardViewer } from "@/components/ui/CardImageModal";
 import { getPortraitUrl } from "@/lib/utils/card-images";
+import { StatLine } from "@/components/ui/StatLine";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -494,9 +495,7 @@ export default function WikiPage() {
 
                           {isExpanded && (
                             <div className="mt-3 pt-3 border-t border-stone-800 space-y-1.5">
-                              <DetailRow label="Defense" value={u.defense} />
-                              <DetailRow label="Morale" value={u.morale} />
-                              <DetailRow label="Speed" value={u.speed} />
+                              <StatLine defense={u.defense} morale={u.morale} speed={u.speed} />
                               <DetailRow label="Faction" value={fi.displayName} />
                               {u.attacks.map((atk, i) => (
                                 <div

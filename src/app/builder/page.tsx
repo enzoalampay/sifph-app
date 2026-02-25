@@ -42,6 +42,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { CardImageModal, useCardViewer } from "@/components/ui/CardImageModal";
 import { HoverCardPreview } from "@/components/ui/HoverCardPreview";
+import { StatLine } from "@/components/ui/StatLine";
 import { importWarCouncilCode } from "@/lib/utils/warcouncil-import";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -992,10 +993,9 @@ export default function BuilderPage() {
                                 )}
                               </div>
                               {unit && (
-                                <p className="text-xs text-stone-500 mt-0.5">
-                                  DEF {unit.defense} &middot; MOR {unit.morale}{" "}
-                                  &middot; SPD {unit.speed}
-                                </p>
+                                <div className="mt-0.5">
+                                  <StatLine defense={unit.defense} morale={unit.morale} speed={unit.speed} size="xs" />
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1342,10 +1342,9 @@ export default function BuilderPage() {
                                           </Badge>
                                         )}
                                       </div>
-                                      <p className="text-[10px] text-stone-500 mt-1">
-                                        DEF {u.defense} &middot; MOR {u.morale}{" "}
-                                        &middot; SPD {u.speed}
-                                      </p>
+                                      <div className="mt-1">
+                                        <StatLine defense={u.defense} morale={u.morale} speed={u.speed} size="xs" />
+                                      </div>
                                     </div>
                                     <button
                                       className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
