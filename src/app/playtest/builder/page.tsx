@@ -28,7 +28,7 @@ import {
   getCommanderTactics,
   PLAYTEST_FACTION_IDS,
 } from "@/lib/data/playtest-loader";
-import { getPortraitUrl, getCardImageUrl } from "@/lib/utils/card-images";
+import { getPortraitUrl } from "@/lib/utils/card-images";
 import { FACTIONS, getFactionInfo } from "@/lib/data/factions";
 import { searchFilter } from "@/lib/utils/search";
 import { Button } from "@/components/ui/Button";

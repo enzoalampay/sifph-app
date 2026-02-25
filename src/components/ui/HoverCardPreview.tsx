@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback, ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FactionId } from "@/lib/types/game-data";
-import { getCardImageUrl } from "@/lib/utils/card-images";
+import { getPlaytestCardImageUrl } from "@/lib/utils/card-images";
+import { usePlaytestImageContext } from "@/contexts/PlaytestImageContext";
 
 interface HoverCardPreviewProps {
   cardId: string;
@@ -29,7 +30,8 @@ export function HoverCardPreview({
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const imageUrl = getCardImageUrl(cardId, faction);
+  const { usePlaytestImages } = usePlaytestImageContext();
+  const imageUrl = getPlaytestCardImageUrl(cardId, faction, usePlaytestImages);
 
   // Only render portal after mount (SSR-safe)
   useEffect(() => {

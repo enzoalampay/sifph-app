@@ -1,9 +1,11 @@
 // =============================================================================
 // Card Image URL helpers
-// Images hosted on the asoiaf-tmg-data GitHub repo
+// Images hosted on the asoiaf-tmg-data GitHub repo.
+// Playtest-aware variants check for local overrides from the Jan 2026 PDF.
 // =============================================================================
 
 import type { FactionId } from "../types/game-data";
+import { isPlaytestCard } from "../data/playtest-card-ids";
 
 const BASE =
   "https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/master";
@@ -47,4 +49,37 @@ export function getTacticsImageUrl(
   faction: FactionId
 ): string {
   return `${BASE}/generated/en/${faction}/${id}.jpg`;
+}
+
+// =============================================================================
+// Playtest-aware variants
+// When usePlaytest is true and the card ID is in the playtest set,
+// returns a local URL (/playtest-cards/{id}.jpg) instead of the CDN URL.
+// =============================================================================
+
+/**
+ * Playtest-aware card image URL.
+ * Returns local playtest image if available, otherwise falls back to CDN.
+ */
+export function getPlaytestCardImageUrl(
+  id: string,
+  faction: FactionId,
+  usePlaytest: boolean
+): string {
+  if (usePlaytest && isPlaytestCard(id)) {
+    return `/playtest-cards/${id}.jpg`;
+  }
+  return getCardImageUrl(id, faction);
+}
+
+/**
+ * Playtest-aware card back image URL.
+ * The playtest PDF does not contain card backs, so this always falls back to CDN.
+ */
+export function getPlaytestCardBackImageUrl(
+  id: string,
+  faction: FactionId,
+  _usePlaytest: boolean
+): string {
+  return getCardBackImageUrl(id, faction);
 }

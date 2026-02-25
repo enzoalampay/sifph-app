@@ -4,9 +4,10 @@ import { useState, useCallback } from "react";
 import { Modal } from "./Modal";
 import { FactionId } from "@/lib/types/game-data";
 import {
-  getCardImageUrl,
-  getCardBackImageUrl,
+  getPlaytestCardImageUrl,
+  getPlaytestCardBackImageUrl,
 } from "@/lib/utils/card-images";
+import { usePlaytestImageContext } from "@/contexts/PlaytestImageContext";
 
 interface CardImageModalProps {
   isOpen: boolean;
@@ -28,8 +29,9 @@ export function CardImageModal({
   const [backImgError, setBackImgError] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const frontUrl = getCardImageUrl(cardId, faction);
-  const backUrl = getCardBackImageUrl(cardId, faction);
+  const { usePlaytestImages } = usePlaytestImageContext();
+  const frontUrl = getPlaytestCardImageUrl(cardId, faction, usePlaytestImages);
+  const backUrl = getPlaytestCardBackImageUrl(cardId, faction, usePlaytestImages);
 
   const handleClose = useCallback(() => {
     setShowBack(false);

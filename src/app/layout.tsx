@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cinzel } from "next/font/google";
+import { Rosario, Geist_Mono, Cinzel } from "next/font/google";
 import "./globals.css";
 import { ClientLayout } from "./client-layout";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const rosario = Rosario({
+  variable: "--font-rosario",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -33,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} antialiased min-h-screen bg-[#0d0b0b]`}
+        className={`${rosario.variable} ${geistMono.variable} ${cinzel.variable} antialiased min-h-screen bg-[#0d0b0b]`}
       >
         <ClientLayout>{children}</ClientLayout>
       </body>
