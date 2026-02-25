@@ -1,0 +1,264 @@
+{
+    "Order: Stark Fury": {
+        "effect": [
+            "When this unit is performing a melee attack, before rolling attack dice:",
+            "Target this unit. This attack rolls +2 attack dice and may reroll any dice. After completing this attack, it becomes Vulnerable."
+        ],
+        "trigger": "When this unit is performing a melee attack, before rolling attack dice"
+    },
+    "Order: Scout Terrain": {
+        "effect": [
+            "When a friendly battlefield unit in long range activates:",
+            "Target that friendly unit. Until the end of the turn, it may reroll any charge distance dice and ignores all terrain penalties."
+        ],
+        "trigger": "When a friendly battlefield unit in long range activates"
+    },
+    "Order: Suppressive Volley": {
+        "effect": [
+            "Start of a friendly turn:",
+            "Target 1 enemy battlefield unit in long range and LoS. It becomes Vulnerable and, until the end of the turn, cannot be the target of enemy orders or tactics cards."
+        ],
+        "trigger": "Start of a friendly turn"
+    },
+    "Order: Hold the Line!": {
+        "effect": [
+            "When this unit activates:",
+            "Target any number of enemies this unit is engaging. Those enemies suffer 2 hits, plus 1 additional hit for each remaining rank in this unit."
+        ],
+        "trigger": "When this unit activates"
+    },
+    "Order: Bulwark Formation": {
+        "effect": [
+            "When this unit is attacked, after rolling defense dice:",
+            "Target this unit. If it is being attacked from the front or flank, it may reroll any defense dice."
+        ],
+        "trigger": "When this unit is attacked, after rolling defense dice"
+    },
+    "Order: Lash Out": {
+        "effect": [
+            "After an enemy completes a melee attack on this unit:",
+            "Target that enemy. It suffers 1 wound, plus 1 additional wound for each of this unit's destroyed ranks."
+        ],
+        "trigger": "After an enemy completes a melee attack on this unit"
+    },
+    "Order: Wolf's Cunning": {
+        "effect": [
+            "After an enemy completes a melee attack on this unit:",
+            "Target this unit. It performs 1 retreat action. It gains +1 to morale dice results for this action."
+        ],
+        "trigger": "After an enemy completes a melee attack on this unit"
+    },
+    "Order: Overrun": {
+        "effect": [
+            "When this unit destroys an enemy:",
+            "Instead of surging forth, this unit may perform 1 charge or march action."
+        ],
+        "trigger": "When this unit destroys an enemy"
+    },
+    "Order: Set an Example": {
+        "effect": [
+            "When this unit performs a morale test, after rolling dice:",
+            "All rolls for this test become successes. After this test has been completed, this unit suffers 1 wound."
+        ],
+        "trigger": "When this unit performs a morale test, after rolling dice"
+    },
+    "Furious Charge": {
+        "effect": [
+            "When this unit successfully charges an enemy, target that enemy. It becomes Vulnerable."
+        ]
+    },
+    "Fury Unleashed": {
+        "effect": [
+            "This unit's melee attacks gain Vicious (+2), with an additional (+1) for each of this unit's destroyed ranks."
+        ],
+        "icons": ["melee"]
+    },
+    "Resilient": {
+        "effect": [
+            "When an enemy battlefield unit is performing an attack on this unit, after rolling defense dice, this unit blocks +1 hit. If it has any destroyed ranks, it blocks +1 additional hit."
+        ]
+    },
+    "Fury of House Umber": {
+        "effect": [
+            "This unit's melee attacks gain Vicious (+2), with an additional (+1) if this unit has a destroyed rank.",
+            "\u2022 When this unit successfully charges an enemy, target that enemy. It becomes Vulnerable or Panicked."
+        ],
+        "icons": ["melee"]
+    },
+    "Light Cavalry": {
+        "effect": [
+            "\u2022 Each model in this unit has 2 wounds.",
+            "\u2022 Once during this unit's activation, before selecting its action, it may perform 1 maneuver action."
+        ]
+    },
+    "Domineering Pride": {
+        "effect": [
+            "When this unit performs a morale test, if it is engaged and has an equal or greater number of remaining ranks than each enemy it is engaging, it may reroll any dice."
+        ]
+    },
+    "Pathetic Attempt": {
+        "effect": [
+            "After an enemy completes a melee attack on this unit, target that enemy. If it does not have more remaining ranks than this unit, it suffers a panic test (4)."
+        ]
+    },
+    "Set for Charge": {
+        "effect": [
+            "When this unit is successfully charged in the front or flank, if it was not already engaged, it may perform 1 melee attack on the charging unit before that unit performs its attack."
+        ]
+    },
+    "Ready, Aim, Release!": {
+        "effect": [
+            "When an enemy declares a charge action against this unit from the front, before resolving that action, this unit may perform 1 ranged attack action against that enemy. This unit cannot shift as part of this attack."
+        ]
+    },
+    "Prey on Fear": {
+        "effect": [
+            "After an enemy engaged with this unit suffers wounds from a panic test, target this unit. It restores 1 wound for each wound that enemy suffered from that test."
+        ]
+    },
+    "Kingslayer's Mastery": {
+        "effect": [
+            "This unit's melee attacks gain +1 to hit and Critical Blow."
+        ],
+        "icons": ["melee"]
+    },
+    "The Mountain's Fury": {
+        "effect": [
+            "\u2022 Charge Bonus: Target the defender. It becomes Panicked and Vulnerable.",
+            "\u2022 This unit's melee attacks roll +2 dice.",
+            "\u2022 After rolling attack dice, for each final die result of 1, this unit suffers 1 wound."
+        ],
+        "icons": ["melee"]
+    },
+    "Unstoppable Advance": {
+        "effect": [
+            "After rolling charge distance dice, this unit may reroll any dice."
+        ]
+    },
+    "Brutal Methods": {
+        "effect": [
+            "This unit's melee attacks gain Vicious (2). If it already had Vicious, it gains Vicious (+1)."
+        ],
+        "icons": ["melee"]
+    },
+    "Weaken Resolve": {
+        "effect": [
+            "When an enemy engaged with this unit suffers wounds from a panic test, you may target that enemy. It becomes Weakened."
+        ]
+    },
+    "Tully Honor, Stark Resolve": {
+        "effect": [
+            "Once per round, if Catelyn is on the council board and an enemy unit declares an attack action, before resolving that attack, you may target the defender. Until this action has been completed, it cannot be targeted by enemy abilities or tactics cards.",
+            "**Influence:** While influencing a friendly battlefield unit, that unit attacks using its highest attack die value."
+        ]
+    },
+    "Repeating the Words": {
+        "effect": [
+            "Once per game, when Sansa claims a council zone, you may replace that zone's effect with the effect of any zone controlled by an opponent.",
+            "**Claim (Any Zone):** You may replace this zone's effect with: If your opponent controls the Crown zone, you may resolve this without discarding any cards. Otherwise, discard 2 tactic cards from your hand. If you do, return 1 card from your discard pile to your hand."
+        ]
+    },
+    "Martial Expertise": {
+        "effect": [
+            "**(Any Zone) Influence:** While Influencing a friendly battlefield unit, after rolling melee attack dice, that unit may reroll any attack dice."
+        ]
+    },
+    "Tracker's Paths": {
+        "effect": [
+            "**Claim:** Treat Escalation on this zone as 1 higher.",
+            "**(Any Zone) Influence:** Influenced friendly units ignore the Dangerous, Hindering, and Rough keywords. Influenced enemy units treat the entire battlefield as having the Rough keyword."
+        ]
+    },
+    "I Will Have Their Heads!": {
+        "effect": [
+            "Each time Joffrey claims a zone, you may target 1 enemy battlefield unit. It becomes Panicked.",
+            "**Influence:** While influencing a friendly battlefield unit, their melee attacks gain Vicious (+2)."
+        ]
+    },
+    "Unethical Experiments": {
+        "effect": [
+            "Once per round, when a friendly battlefield unit is performing a melee attack and Qyburn is on the council board, before rolling attack dice, you may have that attack gain Critical Blow and Sundering. If you do, after completing that attack, the attacker becomes Vulnerable.",
+            "**Influence:** While influencing a friendly battlefield unit, their melee attacks gain +1 to hit. After rolling attack dice, for each final die result of 1, this unit suffers 1 wound."
+        ]
+    },
+    "Tactical Mastermind": {
+        "effect": [
+            "Each time you draw tactics cards, you may draw 1 additional card, then shuffle 1 card from your hand into your deck.",
+            "**Claim:** You may replace this zone's effect with: Look at your opponent's hand of tactics cards. Select and discard 1 of those cards."
+        ]
+    },
+    "Queen's Manipulations": {
+        "effect": [
+            "**Influence (Any Zone):** While influencing an enemy battlefield unit, each time that unit suffers a panic test (x), that test gains (+1).",
+            "**Influence:** While influencing an enemy battlefield unit, 1 enemy attachment in that unit loses all abilities."
+        ]
+    },
+    "Brutal Armaments": {
+        "effect": [
+            "\u2022 Vicious (3)",
+            "\u2022 Charge Bonus: Target the defender. It becomes Panicked.",
+            "\u2022 If the defender suffers wounds from Vicious, you may target 1 other enemy in long range of that enemy. It suffers a panic test (3), with (+1) for each of the defender's destroyed ranks."
+        ],
+        "icons": ["melee"]
+    },
+    "Marauder's Blades": {
+        "effect": [
+            "\u2022 Sundering",
+            "\u2022 Vicious (2)",
+            "\u2022 Charge Bonus: Target the defender. It becomes Panicked.",
+            "\u2022 When the defender performs a panic test caused by this attack's Vicious, that test gains (+1) for each of the defender's destroyed ranks."
+        ],
+        "icons": ["melee"]
+    },
+    "Halberd": {
+        "effect": [
+            "\u2022 Sundering",
+            "\u2022 Before rolling attack dice, if this unit began the turn engaged, this attack rolls +1 attack die for each of this unit's remaining ranks beyond the first."
+        ],
+        "icons": ["melee"]
+    },
+    "Arrow Volley (Playtest)": {
+        "effect": [
+            "\u2022 Critical Blow",
+            "\u2022 Ignores units and terrain when determining LoS."
+        ],
+        "icons": ["ranged"]
+    },
+    "Winter's Bite (Playtest)": {
+        "effect": [
+            "\u2022 Critical Blow",
+            "\u2022 If this unit has a destroyed rank, this attack gains +1 to hit."
+        ],
+        "icons": ["melee"]
+    },
+    "Berserker Axes (Playtest)": {
+        "effect": [
+            "\u2022 Sundering",
+            "\u2022 Charge Bonus: Target the defender. It becomes Vulnerable."
+        ],
+        "icons": ["melee"]
+    },
+    "Tooth & Claw (Playtest)": {
+        "effect": [
+            "\u2022 Sundering"
+        ],
+        "icons": ["melee"]
+    },
+    "Crossbow (Playtest)": {
+        "effect": [
+            "\u2022 Critical Blow",
+            "\u2022 Sundering"
+        ],
+        "icons": ["ranged"]
+    },
+    "Direwolf (Playtest)": {
+        "effect": [
+            "\u2022 This unit has 4 wounds.",
+            "\u2022 This unit can only suffer a maximum of 1 wound from failing panic tests.",
+            "\u2022 Once during this unit's activation, it may perform 1 retreat or maneuver action."
+        ]
+    },
+    "Longsword (Playtest)": {
+        "effect": []
+    }
+}

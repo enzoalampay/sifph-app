@@ -1,5 +1,6 @@
 export const STORAGE_KEYS = {
   ARMY_LISTS: "army-lists",
+  PLAYTEST_ARMY_LISTS: "playtest-army-lists",
   TOURNAMENTS: "tournaments",
   PLAYERS: "players",
   COLLECTION: "collection",

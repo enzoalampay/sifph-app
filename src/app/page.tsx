@@ -11,10 +11,10 @@ import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { getFactionInfo } from "@/lib/data/factions";
 import { Badge } from "@/components/ui/Badge";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { GiScrollUnfurled, GiTrophy, GiKnightBanner, GiChest, GiSpellBook } from "react-icons/gi";
+import { GiScrollUnfurled, GiTrophy, GiKnightBanner, GiChest, GiSpellBook, GiTestTubes } from "react-icons/gi";
 import { IconType } from "react-icons";
 
-const quickActions: { href: string; icon: IconType; title: string; description: string; color: string }[] = [
+const quickActions: { href: string; icon: IconType; title: string; description: string; color: string; iconColor?: string }[] = [
   {
     href: "/builder",
     icon: GiScrollUnfurled,
@@ -49,6 +49,14 @@ const quickActions: { href: string; icon: IconType; title: string; description: 
     title: "Wiki",
     description: "Browse units, tactics, and game rules",
     color: "bg-stone-800/40 border-stone-700/30",
+  },
+  {
+    href: "/playtest",
+    icon: GiTestTubes,
+    title: "Playtest Files",
+    description: "January 2026 Pre-Season testing",
+    color: "bg-teal-900/20 border-teal-800/30",
+    iconColor: "text-teal-400/80",
   },
 ];
 
@@ -94,7 +102,7 @@ export default function DashboardPage() {
           return (
             <Link key={action.href} href={action.href}>
               <Card hover className={`h-full ${action.color}`}>
-                <Icon className="w-7 h-7 sm:w-8 sm:h-8 mb-2 sm:mb-3 text-amber-400/80" />
+                <Icon className={`w-7 h-7 sm:w-8 sm:h-8 mb-2 sm:mb-3 ${action.iconColor ?? "text-amber-400/80"}`} />
                 <h3 className="font-semibold text-stone-100">{action.title}</h3>
                 <p className="text-sm text-stone-400 mt-1">
                   {action.description}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "./UserMenu";
-import { GiCrossedSwords, GiScrollUnfurled, GiTrophy, GiKnightBanner, GiSpellBook } from "react-icons/gi";
+import { GiCrossedSwords, GiScrollUnfurled, GiTrophy, GiKnightBanner, GiSpellBook, GiTestTubes } from "react-icons/gi";
 import { IconType } from "react-icons";
 
 const navItems: { href: string; label: string; icon: IconType }[] = [
@@ -12,6 +12,7 @@ const navItems: { href: string; label: string; icon: IconType }[] = [
   { href: "/tournaments", label: "Tournaments", icon: GiTrophy },
   { href: "/players", label: "Players", icon: GiKnightBanner },
   { href: "/wiki", label: "Wiki", icon: GiSpellBook },
+  { href: "/playtest", label: "Playtest", icon: GiTestTubes },
 ];
 
 export function Navbar() {

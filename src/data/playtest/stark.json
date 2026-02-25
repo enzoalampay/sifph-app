@@ -1,0 +1,567 @@
+{
+    "_meta": {
+        "author": "CMON",
+        "id": "stark",
+        "language": "en",
+        "version": "PT-JAN26"
+    },
+    "unit": [
+        {
+            "id": "10201",
+            "name": "Stark Sworn Swords",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Winter's Bite (Playtest)",
+                "Order: Stark Fury"
+            ],
+            "attacks": [
+                {
+                    "name": "Winter's Bite",
+                    "type": "melee",
+                    "hit": 4,
+                    "dice": [8, 6, 4]
+                }
+            ],
+            "defense": 4,
+            "morale": 4,
+            "speed": 5,
+            "cost": 5,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "Sworn Swords are the bedrock upon which House Stark commanders base their strategies. Brave, capable, and overwhelmingly loyal to the Direwolf banner, Sworn Swords embody the words \"The North Remembers\", with each lost comrade serving only to push them forward in their cause."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10202",
+            "name": "Stark Outriders",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Light Cavalry",
+                "Order: Scout Terrain",
+                "Order: Tactical Reposition"
+            ],
+            "attacks": [
+                {
+                    "name": "Outrider's Blade",
+                    "type": "melee",
+                    "hit": 4,
+                    "dice": [8, 6]
+                }
+            ],
+            "defense": 4,
+            "morale": 4,
+            "speed": 6,
+            "cost": 6,
+            "tray": "cavalry",
+            "wounds": 2,
+            "fluff": {
+                "lore": "Stark Outriders are expert scouts who use their speed and fieldcraft to guide the Northern host. They seize favorable ground, expose enemy missteps, and reposition allies before battle lines collide."
+            },
+            "icon": "cavalry"
+        },
+        {
+            "id": "10203",
+            "name": "House Umber Berserkers",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Berserker Axes (Playtest)",
+                "Order: Lash Out"
+            ],
+            "attacks": [
+                {
+                    "name": "Berserker Axes",
+                    "type": "melee",
+                    "hit": 3,
+                    "dice": [8, 9, 10]
+                }
+            ],
+            "defense": 5,
+            "morale": 3,
+            "speed": 6,
+            "cost": 6,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "Berserkers excel in flanking maneuvers, shattering charges, and general pursuit of routed enemies. A wise commander must take care not to allow them such free rein to find themselves overwhelmed."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10204",
+            "name": "Grey Wind",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Direwolf (Playtest)",
+                "Tooth & Claw (Playtest)",
+                "Disrupt"
+            ],
+            "attacks": [
+                {
+                    "name": "Tooth & Claw",
+                    "type": "melee",
+                    "hit": 3,
+                    "dice": [4]
+                }
+            ],
+            "defense": 4,
+            "morale": 2,
+            "speed": 6,
+            "cost": 3,
+            "tray": "solo",
+            "character": true,
+            "wounds": 4,
+            "back_text": [
+                {
+                    "text": "*May only be fielded in an army including Robb Stark.*",
+                    "name": "Character"
+                }
+            ],
+            "fluff": {
+                "lore": "Where ordinary wolves might be considered frightening, the direwolf known as Grey Wind is absolutely terrifying. Faster than any man on foot, and nearly as swift as any steed, Grey Wind uses instinct alone to guide him where he's most needed on the battlefield."
+            },
+            "icon": "monster"
+        },
+        {
+            "id": "10205",
+            "name": "Stark Bowmen",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Arrow Volley (Playtest)",
+                "Order: Suppressive Volley"
+            ],
+            "attacks": [
+                {
+                    "name": "Arrow Volley",
+                    "type": "long",
+                    "hit": 4,
+                    "dice": [8, 8, 4]
+                },
+                {
+                    "name": "Short Sword",
+                    "type": "melee",
+                    "hit": 5,
+                    "dice": [6, 4, 3]
+                }
+            ],
+            "defense": 6,
+            "morale": 5,
+            "speed": 5,
+            "cost": 6,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "Hunters, woodsmen, and survivalists from the rugged North often serve their lords in one military capacity or another, but when the Direwolf marches to war, it brings more skilled bowmen than most."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10215",
+            "name": "House Karstark Spearmen",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Order: Hold the Line!",
+                "Order: Bulwark Formation"
+            ],
+            "attacks": [
+                {
+                    "name": "Spears",
+                    "type": "melee",
+                    "hit": 4,
+                    "dice": [8, 8, 4]
+                }
+            ],
+            "defense": 4,
+            "morale": 4,
+            "speed": 5,
+            "cost": 5,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "Karstark Spearmen advance with shields locked and spears set, forming an unyielding wall meant to blunt assaults rather than chase glory."
+            },
+            "icon": "infantry"
+        }
+    ],
+    "attachment": [
+        {
+            "id": "20201",
+            "name": "Robb Stark",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "title": "The Wolf Lord",
+            "abilities": [
+                "Order: Wolf's Cunning",
+                "Enhanced Mobility"
+            ],
+            "tray": "infantry",
+            "character": true,
+            "commander": true,
+            "cost": 2,
+            "tactics": ["40258", "40259", "40260"],
+            "fluff": {
+                "quote": "\"All men should keep their word, kings most of all.\""
+            }
+        },
+        {
+            "id": "20202",
+            "name": "Greatjon Umber",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "title": "Lord of Last Hearth",
+            "abilities": [
+                "Order: Overrun",
+                "Fury of House Umber"
+            ],
+            "tray": "infantry",
+            "character": true,
+            "commander": true,
+            "cost": 2,
+            "tactics": ["40261", "40262", "40263"],
+            "fluff": {
+                "quote": "\"Grey Wind ate two of his fingers, and he laughed about it.\""
+            }
+        },
+        {
+            "id": "20204",
+            "name": "Sworn Sword Captain",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "abilities": [
+                "Furious Charge",
+                "Sundering"
+            ],
+            "cost": 1,
+            "tray": "infantry",
+            "icon": "infantry"
+        },
+        {
+            "id": "20203",
+            "name": "Umber Champion",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "abilities": [
+                "Fury Unleashed",
+                "Resilient"
+            ],
+            "cost": 1,
+            "tray": "infantry",
+            "icon": "infantry"
+        }
+    ],
+    "ncu": [
+        {
+            "id": "30201",
+            "name": "Catelyn Stark",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Lady of Winterfell",
+            "abilities": [
+                {
+                    "name": "Tully Honor, Stark Resolve",
+                    "effect": [
+                        "Once per round, if Catelyn is on the council board and an enemy unit declares an attack action, before resolving that attack, you may target the defender. Until this action has been completed, it cannot be targeted by enemy abilities or tactics cards.",
+                        "**Influence:** While influencing a friendly battlefield unit, that unit attacks using its highest attack die value."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"Show me the path I must walk and do not let me stumble in the dark places that lie ahead.\""
+            }
+        },
+        {
+            "id": "30202",
+            "name": "Sansa Stark",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Little Bird",
+            "abilities": [
+                {
+                    "name": "Repeating the Words",
+                    "effect": [
+                        "Once per game, when Sansa claims a council zone, you may replace that zone's effect with the effect of any zone controlled by an opponent.",
+                        "**Claim (Any Zone):** You may replace this zone's effect with: If your opponent controls the Crown zone, you may resolve this without discarding any cards. Otherwise, discard 2 tactic cards from your hand. If you do, return 1 card from your discard pile to your hand."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"The Hound is right... I am only a little bird, repeating the words they taught me.\""
+            }
+        },
+        {
+            "id": "30205",
+            "name": "Rodrik Cassel",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Combat Veteran",
+            "abilities": [
+                {
+                    "name": "Martial Expertise",
+                    "effect": [
+                        "**(Any Zone) Influence:** While Influencing a friendly battlefield unit, after rolling melee attack dice, that unit may reroll any attack dice."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"There is no better trainer than Rodrik.\""
+            }
+        },
+        {
+            "id": "30207",
+            "name": "Howland Reed",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "The Threat Unseen",
+            "abilities": [
+                {
+                    "name": "Tracker's Paths",
+                    "effect": [
+                        "**Claim:** Treat Escalation on this zone as 1 higher.",
+                        "**(Any Zone) Influence:** Influenced friendly units ignore the Dangerous, Hindering, and Rough keywords. Influenced enemy units treat the entire battlefield as having the Rough keyword."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"He could talk to trees and weave words and make castles appear and disappear.\""
+            }
+        }
+    ],
+    "tactics": [
+        {
+            "id": "40251",
+            "name": "Winter Is Coming",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly unit is performing a melee attack, before rolling attack dice:",
+                    "effect": [
+                        "Target the defender. Until this attack is completed, it cannot be targeted by friendly tactics cards or friendly orders."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40252",
+            "name": "Northern Ferocity",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly unit is performing a melee attack, after rolling attack dice:",
+                    "effect": [
+                        "Target the attacker. This attack gains Vicious (+2). If this unit has at least one destroyed rank, also target the defender. It becomes Panicked."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40253",
+            "name": "Relentless Charge",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit declares a charge action, before resolving that action:",
+                    "effect": [
+                        "Target that unit. Until this action has been completed, it may reroll any charge distance dice, ignores all terrain penalties, and the defender does not gain any terrain defense bonuses."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40254",
+            "name": "The North Remembers",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly unit is performing a melee attack, after rolling attack dice:",
+                    "effect": [
+                        "Target that unit. This attack may reroll any attack dice. If this unit has at least one destroyed rank, also target the defender. It becomes Vulnerable."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40255",
+            "name": "Swift Reposition",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "Start of an enemy turn:",
+                    "effect": [
+                        "Target 1 friendly battlefield unit. It performs a 3\" shift. Then, it may pivot."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40256",
+            "name": "The Pack Survives",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit activates:",
+                    "effect": [
+                        "Target that unit. It restores 2 wounds or removes 1 condition token. For each destroyed friendly battlefield unit, repeat this choice."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40257",
+            "name": "The North Endures",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit is attacked, after rolling defense dice:",
+                    "effect": [
+                        "Target the defender. It blocks 1 additional hit, plus 1 more additional hit for each of its destroyed ranks."
+                    ]
+                },
+                {
+                    "trigger": "When a friendly battlefield unit suffers a panic test, before rolling morale dice:",
+                    "effect": [
+                        "Target that unit. Reduce the (x) of that panic test by (1), plus an additional (1) for each of the target's destroyed ranks."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40258",
+            "name": "Alpha Strike",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit is performing an attack, before rolling attack dice:",
+                    "effect": [
+                        "Target the attacker. This attack rolls its highest attack die value. Then, if the defender has not activated this round, or the attacker's unit contains Robb Stark, target the defender. It becomes Vulnerable and, until this attack has been completed, cannot be targeted by friendly orders or tactics cards."
+                    ]
+                }
+            ],
+            "commander": { "id": "20201" }
+        },
+        {
+            "id": "40259",
+            "name": "Hit and Run",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "After a friendly battlefield unit completes a melee attack:",
+                    "effect": [
+                        "Target that unit. If it began this activation engaged, it performs 1 retreat action. If it contains Robb Stark, it does not perform a panic test for this retreat."
+                    ]
+                }
+            ],
+            "commander": { "id": "20201" }
+        },
+        {
+            "id": "40260",
+            "name": "Encircle the Prey",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit activates:",
+                    "effect": [
+                        "That unit performs no action. Then, target 1 other friendly battlefield unit. It performs 1 maneuver or march action. At the end of this maneuver or march, if either unit contained Robb Stark, target 1 enemy in short range. It becomes Vulnerable."
+                    ]
+                }
+            ],
+            "commander": { "id": "20201" }
+        },
+        {
+            "id": "40261",
+            "name": "Berserker Tactics",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly unit is performing a melee attack, before rolling dice:",
+                    "effect": [
+                        "Target the attacker. Its attack rolls +1 attack die. It may also suffer up to 2 wounds. For each wound it suffers, its attack rolls an additional +1 attack die. If this unit contains Greatjon Umber, you may also target any number of enemies it is engaging. They become Panicked."
+                    ]
+                }
+            ],
+            "commander": { "id": "20202" }
+        },
+        {
+            "id": "40262",
+            "name": "Death Before Chains!",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit activates:",
+                    "effect": [
+                        "Target that unit and choose 1 for it to gain until the end of the turn. If this unit has a destroyed rank, or contains Greatjon Umber, choose 2 instead:",
+                        "\u2022 Vicious (+2)",
+                        "\u2022 Sundering",
+                        "\u2022 May reroll any charge distance dice.",
+                        "\u2022 This unit ignores terrain penalties."
+                    ]
+                }
+            ],
+            "commander": { "id": "20202" }
+        },
+        {
+            "id": "40263",
+            "name": "Rage of Last Hearth",
+            "faction": "stark",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit activates:",
+                    "effect": [
+                        "Target 1 enemy it is engaging. That enemy suffers a panic test (2), with (+2) for each of your unit's destroyed ranks. If your unit contains Greatjon Umber, that enemy also becomes Panicked."
+                    ]
+                }
+            ],
+            "commander": { "id": "20202" }
+        }
+    ]
+}

@@ -1,0 +1,550 @@
+{
+    "_meta": {
+        "author": "CMON",
+        "id": "lannister",
+        "language": "en",
+        "version": "PT-JAN26"
+    },
+    "unit": [
+        {
+            "id": "10101",
+            "name": "Lannister Guardsmen",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Domineering Pride",
+                "Pathetic Attempt"
+            ],
+            "attacks": [
+                {
+                    "name": "Longsword",
+                    "type": "melee",
+                    "hit": 4,
+                    "dice": [7, 6, 4]
+                }
+            ],
+            "defense": 3,
+            "morale": 5,
+            "speed": 5,
+            "cost": 5,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "The rank-and-file Lannister forces enjoy a battlefield superiority borne of strong armor, heavy metal shields, and the sense of invulnerability that goes with it."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10102",
+            "name": "Lannister Halberdiers",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Halberd",
+                "Set for Charge"
+            ],
+            "attacks": [
+                {
+                    "name": "Halberd",
+                    "type": "melee",
+                    "hit": 4,
+                    "dice": [8, 8, 4]
+                }
+            ],
+            "defense": 4,
+            "morale": 5,
+            "speed": 5,
+            "cost": 5,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "While capable of mounting offensive assaults, House Lannister's Halberdiers excel in defensive formations and positions. Charging enemies should think twice before facing an entrenched Halberdier line."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10106",
+            "name": "Lannister Crossbowmen",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Crossbow (Playtest)",
+                "Ready, Aim, Release!"
+            ],
+            "attacks": [
+                {
+                    "name": "Crossbow",
+                    "type": "long",
+                    "hit": 3,
+                    "dice": [7, 7, 4]
+                },
+                {
+                    "name": "Short Sword",
+                    "type": "melee",
+                    "hit": 5,
+                    "dice": [6, 4, 3]
+                }
+            ],
+            "defense": 5,
+            "morale": 5,
+            "speed": 6,
+            "cost": 5,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "With even minimal training, Crossbowmen can fire accurately and pierce thick armor even under the pressure of a direct charge."
+            },
+            "icon": "infantry"
+        },
+        {
+            "id": "10112",
+            "name": "House Clegane Brigands",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Light Cavalry",
+                "Brutal Armaments"
+            ],
+            "attacks": [
+                {
+                    "name": "Brutal Armaments",
+                    "type": "melee",
+                    "hit": 3,
+                    "dice": [8, 6]
+                }
+            ],
+            "defense": 4,
+            "morale": 4,
+            "speed": 6,
+            "cost": 6,
+            "tray": "cavalry",
+            "wounds": 2,
+            "fluff": {
+                "lore": "Gregor Clegane's bands of mounted brigands take brutality beyond all norms. For the type of man drawn to Clegane's ranks, a weapon that leaves an enemy crippled and shattered is as good as one that kills swiftly."
+            },
+            "icon": "cavalry"
+        },
+        {
+            "id": "10103",
+            "name": "House Clegane Mountain's Men",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "unit",
+            "abilities": [
+                "Marauder's Blades",
+                "Prey on Fear"
+            ],
+            "attacks": [
+                {
+                    "name": "Marauder's Blades",
+                    "type": "melee",
+                    "hit": 3,
+                    "dice": [8, 7, 5]
+                }
+            ],
+            "defense": 4,
+            "morale": 4,
+            "speed": 5,
+            "cost": 7,
+            "tray": "infantry",
+            "fluff": {
+                "lore": "Brutal, savage, merciless, and ferocious, the Mountain's Men bring the art of warfare to new lows. They accept no quarter. Those that flee are cut down."
+            },
+            "icon": "infantry"
+        }
+    ],
+    "attachment": [
+        {
+            "id": "20115",
+            "name": "Jaime Lannister",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "title": "The Kingslayer",
+            "abilities": [
+                "Kingslayer's Mastery",
+                "Disrupt"
+            ],
+            "tray": "infantry",
+            "character": true,
+            "commander": true,
+            "cost": 2,
+            "tactics": ["40158", "40159", "40160"],
+            "fluff": {
+                "quote": "\"They called him the Lion of Lannister to his face and whispered 'Kingslayer' behind his back.\""
+            }
+        },
+        {
+            "id": "20116",
+            "name": "Gregor Clegane",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "title": "The Mountain",
+            "abilities": [
+                "The Mountain's Fury",
+                "Unstoppable Advance"
+            ],
+            "tray": "infantry",
+            "character": true,
+            "commander": true,
+            "cost": 2,
+            "tactics": ["40161", "40162", "40163"],
+            "fluff": {
+                "quote": "\"No other knight in the realm inspires such terror in our enemies.\""
+            }
+        },
+        {
+            "id": "20102",
+            "name": "Guard Captain",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "abilities": [
+                "Order: Hold the Line!",
+                "Order: Set an Example"
+            ],
+            "cost": 1,
+            "tray": "infantry",
+            "icon": "infantry"
+        },
+        {
+            "id": "20101",
+            "name": "Assault Veteran",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "attachment",
+            "abilities": [
+                "Brutal Methods",
+                "Weaken Resolve"
+            ],
+            "cost": 1,
+            "tray": "infantry",
+            "icon": "infantry"
+        }
+    ],
+    "ncu": [
+        {
+            "id": "30106",
+            "name": "Joffrey Baratheon",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Lord of the Seven Kingdoms",
+            "abilities": [
+                {
+                    "name": "I Will Have Their Heads!",
+                    "effect": [
+                        "Each time Joffrey claims a zone, you may target 1 enemy battlefield unit. It becomes Panicked.",
+                        "**Influence:** While influencing a friendly battlefield unit, their melee attacks gain Vicious (+2)."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"His Grace has a unique way of winning the hearts of his subjects.\""
+            }
+        },
+        {
+            "id": "30108",
+            "name": "Qyburn",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Exiled Maester",
+            "abilities": [
+                {
+                    "name": "Unethical Experiments",
+                    "effect": [
+                        "Once per round, when a friendly battlefield unit is performing a melee attack and Qyburn is on the council board, before rolling attack dice, you may have that attack gain Critical Blow and Sundering. If you do, after completing that attack, the attacker becomes Vulnerable.",
+                        "**Influence:** While influencing a friendly battlefield unit, their melee attacks gain +1 to hit. After rolling attack dice, for each final die result of 1, this unit suffers 1 wound."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"The Citadel took my chain, but they could not take my knowledge.\""
+            }
+        },
+        {
+            "id": "30104",
+            "name": "Tyrion Lannister",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "The Imp",
+            "abilities": [
+                {
+                    "name": "Tactical Mastermind",
+                    "effect": [
+                        "Each time you draw tactics cards, you may draw 1 additional card, then shuffle 1 card from your hand into your deck.",
+                        "**Claim:** You may replace this zone's effect with: Look at your opponent's hand of tactics cards. Select and discard 1 of those cards."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"He is a bigger man than he seems, I think.\""
+            }
+        },
+        {
+            "id": "30105",
+            "name": "Cersei Lannister",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "ncu",
+            "title": "Queen Regent",
+            "abilities": [
+                {
+                    "name": "Queen's Manipulations",
+                    "effect": [
+                        "**Influence (Any Zone):** While influencing an enemy battlefield unit, each time that unit suffers a panic test (x), that test gains (+1).",
+                        "**Influence:** While influencing an enemy battlefield unit, 1 enemy attachment in that unit loses all abilities."
+                    ]
+                }
+            ],
+            "cost": 5,
+            "character": true,
+            "fluff": {
+                "quote": "\"When you play the game of thrones, you win or you die. There is no middle ground.\""
+            }
+        }
+    ],
+    "tactics": [
+        {
+            "id": "40151",
+            "name": "Hear Me Roar!",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy battlefield unit activates:",
+                    "effect": [
+                        "Target that enemy. If it is in long range of one or more friendly Lannister battlefield units, it suffers a panic test (3). If any of those units have more remaining ranks than the target, the target also becomes Panicked."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40152",
+            "name": "Counterplot",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy council unit activates:",
+                    "effect": [
+                        "Until the end of the turn, all council zones lose all Escalation effects."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40153",
+            "name": "Intrigue and Subterfuge",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy council unit activates:",
+                    "effect": [
+                        "Target that council unit. Until the end of the round, it loses all abilities."
+                    ]
+                },
+                {
+                    "trigger": "When a friendly council unit activates:",
+                    "effect": [
+                        "Until the end of the turn, if that unit claims a zone, increase that zone's Escalation by one."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40154",
+            "name": "Wealth of the Rock",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy battlefield unit is performing an attack, after rolling defense dice:",
+                    "effect": [
+                        "Target the defender. Until the end of this action, it may reroll any defense dice."
+                    ]
+                },
+                {
+                    "trigger": "When a friendly council unit claims a zone:",
+                    "effect": [
+                        "You may replace that zone's effect with the effect of the Crown zone."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40155",
+            "name": "Subjugation of Power",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When any battlefield unit activates:",
+                    "effect": [
+                        "Target 1 enemy battlefield unit. It performs a morale test (3). For each failure, choose 1 of that unit's abilities. Until the end of the turn, it loses that ability."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40156",
+            "name": "A Lannister Pays His Debts",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy targets one or more of your units with an ability, tactic card, or council zone effect:",
+                    "effect": [
+                        "After resolving that ability/tactic card/council zone effect, target 1 enemy battlefield unit. It suffers a panic test (3). If you have one or more destroyed battlefield units, that enemy also becomes Panicked."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40157",
+            "name": "Bribery",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy battlefield unit activates:",
+                    "effect": [
+                        "Until the end of the turn, that unit cannot be targeted by friendly orders and is treated as having 1 fewer rank when determining attack dice, to a minimum of 1."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "40158",
+            "name": "Kingslayer's Pride",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit is performing a morale test, after rolling dice:",
+                    "effect": [
+                        "Target that unit. It may reroll any dice for this test. If it is in long range of a friendly unit containing Jaime Lannister, it gains +1 to its morale dice results."
+                    ]
+                }
+            ],
+            "commander": { "id": "20115" }
+        },
+        {
+            "id": "40159",
+            "name": "Deadly Riposte",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When an enemy battlefield unit is performing a melee attack, after rolling attack dice:",
+                    "effect": [
+                        "Target the attacker. For each miss, it suffers 1 hit. If the defender's unit contains Jaime Lannister, the attacker also becomes Vulnerable."
+                    ]
+                },
+                {
+                    "trigger": "When a friendly battlefield unit gains a condition token:",
+                    "effect": [
+                        "Target that unit. If it is in long range of a friendly unit containing Jaime Lannister, it does not gain that token."
+                    ]
+                }
+            ],
+            "commander": { "id": "20115" }
+        },
+        {
+            "id": "40160",
+            "name": "Reckless Glory",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit activates:",
+                    "effect": [
+                        "Target that unit. It becomes Vulnerable. Then, choose 1 of the following for it to gain until the end of the turn. If it contains Jaime Lannister, choose 2 instead:",
+                        "\u2022 It may reroll any charge distance dice.",
+                        "\u2022 Its melee attacks roll their highest attack die value.",
+                        "\u2022 Its melee attacks may reroll any misses."
+                    ]
+                }
+            ],
+            "commander": { "id": "20115" }
+        },
+        {
+            "id": "40161",
+            "name": "Brutal Slayings",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "After a friendly battlefield unit completes a melee attack:",
+                    "effect": [
+                        "If your attack destroyed an enemy rank, or your unit contains Gregor Clegane, target 1 enemy in long range of your unit. It becomes Panicked and Weakened."
+                    ]
+                }
+            ],
+            "commander": { "id": "20116" }
+        },
+        {
+            "id": "40162",
+            "name": "Path of Destruction",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly battlefield unit would surge forth:",
+                    "effect": [
+                        "Target that unit. Instead of surging forth, that unit may pivot then perform 1 charge or march action. If charging, it attacks using its lowest attack die value. If it contains Gregor Clegane, it may reroll any charge distance dice."
+                    ]
+                },
+                {
+                    "trigger": "When a friendly battlefield unit completes a maneuver or march action:",
+                    "effect": [
+                        "Target all enemies in short range of that unit. They become Panicked."
+                    ]
+                }
+            ],
+            "commander": { "id": "20116" }
+        },
+        {
+            "id": "40163",
+            "name": "Fury Unleashed",
+            "faction": "lannister",
+            "version": "PT-JAN26",
+            "role": "tactics",
+            "text": [
+                {
+                    "trigger": "When a friendly unit is performing a melee attack, before rolling attack dice:",
+                    "effect": [
+                        "Target the attacker and choose 1. If the attacker has a destroyed rank, or contains Gregor Clegane, gain both instead:",
+                        "\u2022 This attack gains Sundering and may reroll any attack dice.",
+                        "\u2022 Target the defender. Until this attack is completed, it cannot be targeted by orders or friendly tactics cards.",
+                        "After this attack has been completed, the attacker becomes Vulnerable."
+                    ]
+                }
+            ],
+            "commander": { "id": "20116" }
+        }
+    ]
+}
