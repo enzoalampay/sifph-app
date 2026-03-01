@@ -1199,6 +1199,7 @@ export default function PlaytestBuilderPage() {
                         ) : (
                           filteredUnits.map((u) => {
                             const isDuplicate = u.character && usedCharacterUnitNames.has(u.name);
+                            const uFi = getFactionInfo(u.faction);
                             return (
                             <Card
                               key={u.id}
@@ -1217,7 +1218,7 @@ export default function PlaytestBuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2">
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${uFi.cardColor}18`, borderLeft: `2px solid ${uFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
@@ -1287,6 +1288,7 @@ export default function PlaytestBuilderPage() {
                         ) : (
                           filteredNCUs.map((n) => {
                             const isDuplicate = n.character && usedCharacterNCUNames.has(n.name);
+                            const nFi = getFactionInfo(n.faction);
                             return (
                             <Card
                               key={n.id}
@@ -1305,7 +1307,7 @@ export default function PlaytestBuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2">
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${nFi.cardColor}18`, borderLeft: `2px solid ${nFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
@@ -1371,6 +1373,7 @@ export default function PlaytestBuilderPage() {
                         ) : (
                           filteredAttachments.map((a) => {
                             const isDuplicate = a.character && usedCharacterAttachmentNames.has(a.name);
+                            const aFi = getFactionInfo(a.faction);
                             return (
                             <Card
                               key={a.id}
@@ -1396,7 +1399,7 @@ export default function PlaytestBuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2">
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${aFi.cardColor}18`, borderLeft: `2px solid ${aFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
