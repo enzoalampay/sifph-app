@@ -1027,18 +1027,25 @@ export default function BuilderPage() {
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
                               />
-                              <HoverCardPreview cardId={att.id} faction={att.faction}>
-                                <span className="text-xs text-stone-300 hover:text-amber-400 transition-colors uppercase">
-                                  {att.name}
-                                </span>
-                              </HoverCardPreview>
-                              <button
-                                className="text-stone-500 hover:text-amber-400 transition-colors"
-                                onClick={() => openCard(att.id, att.name, att.faction)}
-                                title="View card"
-                              >
-                                <span className="text-[10px]">&#128065;</span>
-                              </button>
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  <HoverCardPreview cardId={att.id} faction={att.faction}>
+                                    <span className="text-xs text-stone-300 hover:text-amber-400 transition-colors uppercase">
+                                      {att.name}
+                                    </span>
+                                  </HoverCardPreview>
+                                  <button
+                                    className="text-stone-500 hover:text-amber-400 transition-colors"
+                                    onClick={() => openCard(att.id, att.name, att.faction)}
+                                    title="View card"
+                                  >
+                                    <span className="text-[10px]">&#128065;</span>
+                                  </button>
+                                </div>
+                                {att.title && (
+                                  <p className="text-[10px] text-stone-400">{att.title}</p>
+                                )}
+                              </div>
                               {att.cost !== undefined && att.cost > 0 && (
                                 <Badge variant="default" size="sm">
                                   +{att.cost} pts
@@ -1514,6 +1521,11 @@ export default function BuilderPage() {
                                       <p className="text-xs font-medium text-stone-100 truncate uppercase">
                                         {a.name}
                                       </p>
+                                      {a.title && (
+                                        <p className="text-[10px] text-stone-400 truncate">
+                                          {a.title}
+                                        </p>
+                                      )}
                                       {isDuplicate && (
                                         <p className="text-[9px] text-red-400 mt-0.5">Character — already added</p>
                                       )}
@@ -1999,6 +2011,11 @@ export default function BuilderPage() {
                         <p className="text-sm text-stone-100 truncate uppercase">
                           {a.name}
                         </p>
+                        {a.title && (
+                          <p className="text-[10px] text-stone-400 truncate">
+                            {a.title}
+                          </p>
+                        )}
                         {isDuplicate && (
                           <p className="text-[9px] text-red-400">Character — already added</p>
                         )}

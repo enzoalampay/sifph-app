@@ -22,15 +22,15 @@ export function StatLine({
 
   return (
     <div className={`flex items-center ${gap}`}>
-      <span className={`flex items-center gap-1 ${textSize} text-stone-300`}>
+      <span className={`flex items-center gap-0.5 ${textSize} text-stone-300`}>
         <img src="/Defense.png" alt="DEF" className={iconSize} />
         {defense}
       </span>
-      <span className={`flex items-center gap-1 ${textSize} text-stone-300`}>
+      <span className={`flex items-center gap-0.5 ${textSize} text-stone-300`}>
         <img src="/Morale.png" alt="MOR" className={iconSize} />
         {morale}
       </span>
-      <span className={`flex items-center gap-1 ${textSize} text-stone-300`}>
+      <span className={`flex items-center gap-0.5 ${textSize} text-stone-300`}>
         <img src="/Speed.png" alt="SPD" className={iconSize} />
         {speed}
       </span>
