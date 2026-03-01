@@ -275,7 +275,7 @@ export default function CollectionPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-stone-200 truncate">
+                      <div className="text-sm font-medium text-stone-200 truncate uppercase">
                         {item.name}
                       </div>
                       <div className="text-xs text-stone-500">

@@ -551,7 +551,7 @@ export default function PlaytestBuilderPage() {
                     <div className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${pFi.cardColor}25`, borderLeft: `3px solid ${pFi.cardColor}` }}>
                       <img src={getPortraitUrl(pCommander.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: pFi.cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       <div>
-                        <p className="text-sm font-medium text-stone-100">{pCommander.name}</p>
+                        <p className="text-sm font-medium text-stone-100 uppercase">{pCommander.name}</p>
                         {pCommander.title && <p className="text-[10px] text-stone-400">{pCommander.title}</p>}
                       </div>
                     </div>
@@ -569,18 +569,18 @@ export default function PlaytestBuilderPage() {
                             {unit && <img src={getPortraitUrl(unit.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: getFactionInfo(unit.faction).cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="text-xs font-medium text-stone-100 truncate">{unit?.name ?? slot.unitId}</p>
+                                <p className="text-xs font-medium text-stone-100 truncate uppercase">{unit?.name ?? slot.unitId}</p>
                                 {unit && <span className="text-[10px] text-stone-400">{unit.cost} pts</span>}
                               </div>
                               {attachments.length > 0 && (
                                 <div className="mt-0.5">
                                   {attachments.map(att => (
-                                    <p key={att.id} className="text-[10px] text-stone-400 pl-2">+ {att.name}{att.cost ? ` (${att.cost} pts)` : ''}</p>
+                                    <p key={att.id} className="text-[10px] text-stone-400 pl-2 uppercase">+ {att.name}{att.cost ? ` (${att.cost} pts)` : ''}</p>
                                   ))}
                                 </div>
                               )}
                               {previewList.commanderUnitSlotId === slot.id && pCommander && (
-                                <p className="text-[10px] text-amber-400 pl-2">★ {pCommander.name}</p>
+                                <p className="text-[10px] text-amber-400 pl-2 uppercase">★ {pCommander.name}</p>
                               )}
                             </div>
                           </div>
@@ -599,7 +599,7 @@ export default function PlaytestBuilderPage() {
                         <div key={slot.id} className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}25`, borderLeft: `3px solid ${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}` }}>
                           {ncu && <img src={getPortraitUrl(ncu.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: getFactionInfo(ncu.faction).cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                           <div>
-                            <p className="text-xs font-medium text-stone-100">{ncu?.name ?? slot.ncuId}</p>
+                            <p className="text-xs font-medium text-stone-100 uppercase">{ncu?.name ?? slot.ncuId}</p>
                             {ncu && <span className="text-[10px] text-stone-400">{ncu.cost} pts</span>}
                           </div>
                         </div>
@@ -740,7 +740,7 @@ export default function PlaytestBuilderPage() {
                     <div>
                       <div className="flex items-center gap-1.5">
                         <HoverCardPreview cardId={commanderData.id} faction={army.faction}>
-                          <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors cursor-default">
+                          <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors cursor-default uppercase">
                             {commanderData.name}
                           </span>
                         </HoverCardPreview>
@@ -864,7 +864,7 @@ export default function PlaytestBuilderPage() {
                                 {unit ? (
                                   <>
                                     <HoverCardPreview cardId={unit.id} faction={unit.faction}>
-                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
+                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors uppercase">
                                         {unit.name}
                                       </span>
                                     </HoverCardPreview>
@@ -926,7 +926,7 @@ export default function PlaytestBuilderPage() {
                                 loading="lazy"
                               />
                               <HoverCardPreview cardId={att.id} faction={att.faction}>
-                                <span className="text-xs text-stone-300 hover:text-amber-400 transition-colors">
+                                <span className="text-xs text-stone-300 hover:text-amber-400 transition-colors uppercase">
                                   {att.name}
                                 </span>
                               </HoverCardPreview>
@@ -963,7 +963,7 @@ export default function PlaytestBuilderPage() {
                           <Badge variant="warning" size="sm">
                             Commander
                           </Badge>
-                          <p className="text-xs text-amber-300">
+                          <p className="text-xs text-amber-300 uppercase">
                             {commanderData.name}
                           </p>
                         </div>
@@ -1027,7 +1027,7 @@ export default function PlaytestBuilderPage() {
                                 {ncu ? (
                                   <>
                                     <HoverCardPreview cardId={ncu.id} faction={ncu.faction}>
-                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors">
+                                      <span className="text-sm font-medium text-stone-100 hover:text-amber-400 transition-colors uppercase">
                                         {ncu.name}
                                       </span>
                                     </HoverCardPreview>
@@ -1094,7 +1094,7 @@ export default function PlaytestBuilderPage() {
                           className="flex items-center justify-between rounded px-2 py-1 -mx-2 hover:bg-stone-800 transition-colors"
                         >
                           <HoverCardPreview cardId={t.id} faction={t.faction}>
-                            <span className="text-xs text-stone-200 hover:text-amber-400 transition-colors">
+                            <span className="text-xs text-stone-200 hover:text-amber-400 transition-colors uppercase">
                               {t.name}
                             </span>
                           </HoverCardPreview>
@@ -1124,7 +1124,7 @@ export default function PlaytestBuilderPage() {
                           className="flex items-center justify-between rounded px-2 py-1 -mx-2 hover:bg-stone-800 transition-colors"
                         >
                           <HoverCardPreview cardId={t.id} faction={t.faction}>
-                            <span className="text-xs text-amber-300 hover:text-amber-400 transition-colors">
+                            <span className="text-xs text-amber-300 hover:text-amber-400 transition-colors uppercase">
                               {t.name}
                             </span>
                           </HoverCardPreview>
@@ -1225,7 +1225,7 @@ export default function PlaytestBuilderPage() {
                                 <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${uFi.cardColor}18`, borderLeft: `4px solid ${uFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                      <p className="text-xs font-medium text-stone-100 truncate uppercase">
                                         {u.name}
                                       </p>
                                       {isDuplicate && (
@@ -1314,7 +1314,7 @@ export default function PlaytestBuilderPage() {
                                 <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${nFi.cardColor}18`, borderLeft: `4px solid ${nFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                      <p className="text-xs font-medium text-stone-100 truncate uppercase">
                                         {n.name}
                                       </p>
                                       {isDuplicate && (
@@ -1406,7 +1406,7 @@ export default function PlaytestBuilderPage() {
                                 <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${aFi.cardColor}18`, borderLeft: `4px solid ${aFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-medium text-stone-100 truncate">
+                                      <p className="text-xs font-medium text-stone-100 truncate uppercase">
                                         {a.name}
                                       </p>
                                       {isDuplicate && (
@@ -1486,7 +1486,7 @@ export default function PlaytestBuilderPage() {
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <p className="text-xs font-medium text-stone-100 truncate">
+                                        <p className="text-xs font-medium text-stone-100 truncate uppercase">
                                           {c.name}
                                         </p>
                                         {c.faction === "neutral" && (
@@ -1555,7 +1555,7 @@ export default function PlaytestBuilderPage() {
                                 }
                               >
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="text-xs font-medium text-stone-100">
+                                  <p className="text-xs font-medium text-stone-100 uppercase">
                                     {t.name}
                                   </p>
                                   <svg className="w-3.5 h-3.5 shrink-0 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1591,7 +1591,7 @@ export default function PlaytestBuilderPage() {
                                 }
                               >
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="text-xs font-medium text-stone-100">
+                                  <p className="text-xs font-medium text-stone-100 uppercase">
                                     {t.name}
                                   </p>
                                   <svg className="w-3.5 h-3.5 shrink-0 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1657,7 +1657,7 @@ export default function PlaytestBuilderPage() {
                   onClick={() => handleAttachToSlot(slot.id)}
                 >
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-stone-100">
+                    <p className="text-sm text-stone-100 uppercase">
                       {unit?.name ?? slot.unitId}
                     </p>
                     {unit && (
@@ -1715,7 +1715,7 @@ export default function PlaytestBuilderPage() {
                   onClick={() => handleCommanderToSlot(slot.id)}
                 >
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-stone-100">
+                    <p className="text-sm text-stone-100 uppercase">
                       {unit?.name ?? slot.unitId}
                     </p>
                     {unit && (
@@ -1754,7 +1754,7 @@ export default function PlaytestBuilderPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-stone-100 truncate">
+                      <p className="text-sm font-medium text-stone-100 truncate uppercase">
                         {c.name}
                       </p>
                       {c.faction === "neutral" && (
@@ -1798,7 +1798,7 @@ export default function PlaytestBuilderPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-stone-300">
-            Your commander <span className="text-amber-400 font-medium">{commanderData?.name}</span> is not attached to any unit. Are you sure you want to save?
+            Your commander <span className="text-amber-400 font-medium uppercase">{commanderData?.name}</span> is not attached to any unit. Are you sure you want to save?
           </p>
           <div className="flex items-center gap-3 justify-end">
             <Button
@@ -1887,7 +1887,7 @@ export default function PlaytestBuilderPage() {
                   <div className="flex-1 min-w-0 p-2">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-stone-100 truncate">
+                        <p className="text-sm text-stone-100 truncate uppercase">
                           {a.name}
                         </p>
                         {isDuplicate && (

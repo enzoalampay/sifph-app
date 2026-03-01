@@ -98,7 +98,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
               }}
             />
             <div>
-              <p className="text-sm font-medium text-stone-100">
+              <p className="text-sm font-medium text-stone-100 uppercase">
                 {commander.name}
               </p>
               {commander.title && (
@@ -140,7 +140,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium text-stone-100 truncate">
+                        <p className="text-xs font-medium text-stone-100 truncate uppercase">
                           {unit?.name ?? slot.unitId}
                         </p>
                         {unit && (
@@ -154,7 +154,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
                           {attachments.map((att) => (
                             <p
                               key={att.id}
-                              className="text-[10px] text-stone-400 pl-2"
+                              className="text-[10px] text-stone-400 pl-2 uppercase"
                             >
                               + {att.name}
                               {att.cost ? ` (${att.cost} pts)` : ""}
@@ -163,7 +163,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
                         </div>
                       )}
                       {list.commanderUnitSlotId === slot.id && commander && (
-                        <p className="text-[10px] text-amber-400 pl-2">
+                        <p className="text-[10px] text-amber-400 pl-2 uppercase">
                           ★ {commander.name}
                         </p>
                       )}
@@ -205,7 +205,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
                     />
                   )}
                   <div>
-                    <p className="text-xs font-medium text-stone-100">
+                    <p className="text-xs font-medium text-stone-100 uppercase">
                       {ncu?.name ?? slot.ncuId}
                     </p>
                     {ncu && (
@@ -229,7 +229,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
           </p>
           <div className="space-y-1">
             {factionTactics.map((t) => (
-              <p key={t.id} className="text-xs text-stone-300 pl-2">
+              <p key={t.id} className="text-xs text-stone-300 pl-2 uppercase">
                 {t.name}
               </p>
             ))}
@@ -239,7 +239,7 @@ export function ArmyListPreview({ list, onOpenInBuilder }: ArmyListPreviewProps)
                   Commander Tactics
                 </p>
                 {commanderTactics.map((t) => (
-                  <p key={t.id} className="text-xs text-stone-300 pl-2">
+                  <p key={t.id} className="text-xs text-stone-300 pl-2 uppercase">
                     {t.name}
                   </p>
                 ))}

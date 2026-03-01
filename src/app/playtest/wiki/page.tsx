@@ -400,7 +400,7 @@ export default function PlaytestWikiPage() {
                                 alt={fi.shortName}
                                 className="w-5 h-5 object-contain shrink-0"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate">
+                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
                                 {u.name}
                               </p>
                               <Badge variant="default" size="sm">
@@ -542,7 +542,7 @@ export default function PlaytestWikiPage() {
                                 alt={fi.shortName}
                                 className="w-5 h-5 object-contain shrink-0"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate">
+                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
                                 {a.name}
                               </p>
                               {a.cost !== undefined && a.cost > 0 && (
@@ -693,7 +693,7 @@ export default function PlaytestWikiPage() {
                                 alt={fi.shortName}
                                 className="w-5 h-5 object-contain shrink-0"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate">
+                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
                                 {n.name}
                               </p>
                               <Badge variant="default" size="sm">
@@ -763,7 +763,7 @@ export default function PlaytestWikiPage() {
                                   <div className="space-y-2">
                                     {n.abilities.map((ab, i) => (
                                       <div key={i}>
-                                        <p className="text-xs font-medium text-stone-300">
+                                        <p className="text-xs font-medium text-stone-300 uppercase">
                                           {ab.name}
                                         </p>
                                         {ab.effect.map((line, j) => (
@@ -833,7 +833,7 @@ export default function PlaytestWikiPage() {
                                 alt={fi.shortName}
                                 className="w-5 h-5 object-contain shrink-0"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate">
+                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
                                 {t.name}
                               </p>
                               {t.commander && (
@@ -941,7 +941,7 @@ export default function PlaytestWikiPage() {
                           className="flex items-center gap-2 cursor-pointer"
                           onClick={() => toggleExpanded(`ability-${entry.name}`)}
                         >
-                          <p className="text-sm font-medium text-stone-100">
+                          <p className="text-sm font-medium text-stone-100 uppercase">
                             {entry.displayName}
                           </p>
                           {entry.definition.trigger && (
@@ -990,7 +990,7 @@ export default function PlaytestWikiPage() {
                                     return (
                                       <span
                                         key={u.id}
-                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300 uppercase"
                                       >
                                         <img
                                           src={fi.crestUrl}
@@ -1006,7 +1006,7 @@ export default function PlaytestWikiPage() {
                                     return (
                                       <span
                                         key={a.id}
-                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300 uppercase"
                                       >
                                         <img
                                           src={fi.crestUrl}
@@ -1064,7 +1064,7 @@ export default function PlaytestWikiPage() {
                           <Badge variant="warning" size="sm">
                             Order
                           </Badge>
-                          <p className="text-sm font-medium text-stone-100">
+                          <p className="text-sm font-medium text-stone-100 uppercase">
                             {entry.displayName}
                           </p>
                           <span className="text-[10px] text-stone-600 ml-auto">
@@ -1108,7 +1108,7 @@ export default function PlaytestWikiPage() {
                                     return (
                                       <span
                                         key={u.id}
-                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300 uppercase"
                                       >
                                         <img
                                           src={fi.crestUrl}
@@ -1124,7 +1124,7 @@ export default function PlaytestWikiPage() {
                                     return (
                                       <span
                                         key={a.id}
-                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300"
+                                        className="inline-flex items-center gap-1 rounded-full border border-stone-700 bg-stone-800/50 px-2 py-0.5 text-[10px] text-stone-300 uppercase"
                                       >
                                         <img
                                           src={fi.crestUrl}
