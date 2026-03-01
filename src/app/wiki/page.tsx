@@ -430,10 +430,10 @@ export default function WikiPage() {
                     >
                       <div className="flex items-stretch">
                         <div
-                          className="w-1 shrink-0 self-stretch"
-                          style={{ backgroundColor: fi.color }}
+                          className="w-1.5 shrink-0 self-stretch"
+                          style={{ backgroundColor: fi.cardColor }}
                         />
-                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
                           <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
@@ -572,10 +572,10 @@ export default function WikiPage() {
                     >
                       <div className="flex items-stretch">
                         <div
-                          className="w-1 shrink-0 self-stretch"
-                          style={{ backgroundColor: fi.color }}
+                          className="w-1.5 shrink-0 self-stretch"
+                          style={{ backgroundColor: fi.cardColor }}
                         />
-                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
                           <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
@@ -723,10 +723,10 @@ export default function WikiPage() {
                     >
                       <div className="flex items-stretch">
                         <div
-                          className="w-1 shrink-0 self-stretch"
-                          style={{ backgroundColor: fi.color }}
+                          className="w-1.5 shrink-0 self-stretch"
+                          style={{ backgroundColor: fi.cardColor }}
                         />
-                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
                           <div className="flex items-stretch justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
@@ -863,10 +863,10 @@ export default function WikiPage() {
                     >
                       <div className="flex items-center">
                         <div
-                          className="w-1 shrink-0 self-stretch"
-                          style={{ backgroundColor: fi.color }}
+                          className="w-1.5 shrink-0 self-stretch"
+                          style={{ backgroundColor: fi.cardColor }}
                         />
-                        <div className="flex-1 min-w-0 p-2.5 sm:p-3">
+                        <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
                           <div className="flex items-center justify-between gap-2">
                             <div
                               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"

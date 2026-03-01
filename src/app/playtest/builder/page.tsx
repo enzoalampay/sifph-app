@@ -417,7 +417,7 @@ export default function PlaytestBuilderPage() {
                       <div className="flex items-center">
                         <div
                           className="w-1.5 shrink-0 self-stretch"
-                          style={{ backgroundColor: fi.color }}
+                          style={{ backgroundColor: fi.cardColor }}
                         />
                         <div className="flex items-center gap-3 flex-1 p-4">
                           <img
@@ -493,7 +493,7 @@ export default function PlaytestBuilderPage() {
                     <div className="flex items-center">
                       <div
                         className="w-1.5 shrink-0 self-stretch"
-                        style={{ backgroundColor: fi.color }}
+                        style={{ backgroundColor: fi.cardColor }}
                       />
                       <div className="flex items-center gap-3 flex-1 p-4">
                         <img
@@ -548,7 +548,7 @@ export default function PlaytestBuilderPage() {
                 {pCommander && (
                   <div>
                     <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Commander</p>
-                    <div className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${pFi.color}15`, borderLeft: `3px solid ${pFi.color}` }}>
+                    <div className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${pFi.cardColor}25`, borderLeft: `3px solid ${pFi.cardColor}` }}>
                       <img src={getPortraitUrl(pCommander.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       <div>
                         <p className="text-sm font-medium text-stone-100">{pCommander.name}</p>
@@ -564,7 +564,7 @@ export default function PlaytestBuilderPage() {
                     <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Units ({pUnits.length})</p>
                     <div className="space-y-1.5">
                       {pUnits.map(({ slot, unit, attachments }) => (
-                        <div key={slot.id} className="rounded-md p-2" style={{ backgroundColor: `${unit ? getFactionInfo(unit.faction).color : pFi.color}15`, borderLeft: `3px solid ${unit ? getFactionInfo(unit.faction).color : pFi.color}` }}>
+                        <div key={slot.id} className="rounded-md p-2" style={{ backgroundColor: `${unit ? getFactionInfo(unit.faction).cardColor : pFi.cardColor}25`, borderLeft: `3px solid ${unit ? getFactionInfo(unit.faction).cardColor : pFi.cardColor}` }}>
                           <div className="flex items-center gap-2">
                             {unit && <img src={getPortraitUrl(unit.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                             <div className="flex-1 min-w-0">
@@ -596,7 +596,7 @@ export default function PlaytestBuilderPage() {
                     <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">NCUs ({pNCUs.length})</p>
                     <div className="space-y-1.5">
                       {pNCUs.map(({ slot, ncu }) => (
-                        <div key={slot.id} className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${ncu ? getFactionInfo(ncu.faction).color : pFi.color}15`, borderLeft: `3px solid ${ncu ? getFactionInfo(ncu.faction).color : pFi.color}` }}>
+                        <div key={slot.id} className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}25`, borderLeft: `3px solid ${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}` }}>
                           {ncu && <img src={getPortraitUrl(ncu.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                           <div>
                             <p className="text-xs font-medium text-stone-100">{ncu?.name ?? slot.ncuId}</p>
@@ -844,8 +844,8 @@ export default function PlaytestBuilderPage() {
                   return (
                   <Card key={slot.id} padding="none" className="overflow-hidden">
                     <div className="flex">
-                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: unitFi.color }} />
-                      <div className="flex-1 p-3" style={{ backgroundColor: `${unitFi.color}10` }}>
+                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: unitFi.cardColor }} />
+                      <div className="flex-1 p-3" style={{ backgroundColor: `${unitFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-start gap-2.5 min-w-0">
                             {unit && (
@@ -1005,8 +1005,8 @@ export default function PlaytestBuilderPage() {
                   return (
                   <Card key={slot.id} padding="none" className="overflow-hidden">
                     <div className="flex">
-                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: ncuFi.color }} />
-                      <div className="flex-1 p-3" style={{ backgroundColor: `${ncuFi.color}10` }}>
+                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: ncuFi.cardColor }} />
+                      <div className="flex-1 p-3" style={{ backgroundColor: `${ncuFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-start gap-2.5 min-w-0">
                             {ncu && (

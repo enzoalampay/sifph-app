@@ -193,7 +193,7 @@ export default function CollectionPage() {
                 }`}
                 style={
                   factionFilter === fid
-                    ? { backgroundColor: `${f.color}20`, borderColor: f.color }
+                    ? { backgroundColor: `${f.cardColor}25`, borderColor: f.color }
                     : {}
                 }
               >
