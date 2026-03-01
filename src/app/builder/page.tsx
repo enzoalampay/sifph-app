@@ -1564,50 +1564,73 @@ export default function BuilderPage() {
                             No commanders available.
                           </p>
                         ) : (
-                          commanders.map((c) => (
+                          commanders.map((c) => {
+                            const cFi = getFactionInfo(c.faction);
+                            return (
                             <Card
                               key={c.id}
                               hover
-                              padding="sm"
+                              padding="none"
+                              className="overflow-hidden"
                               onClick={() => {
                                 // Select commander directly (no unit needed)
                                 selectCommanderOnly(c.id);
                               }}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <p className="text-xs font-medium text-stone-100 truncate">
-                                      {c.name}
-                                    </p>
-                                    {c.faction === "neutral" && (
-                                      <Badge variant="info" size="sm">
-                                        Neutral
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {c.title && (
-                                    <p className="text-[10px] text-stone-400 truncate">
-                                      {c.title}
-                                    </p>
-                                  )}
+                              <div className="flex">
+                                {/* Character portrait thumbnail */}
+                                <div className="w-14 shrink-0 overflow-hidden rounded-l-lg self-stretch" style={{ backgroundColor: cFi.cardColor }}>
+                                  <img
+                                    src={getPortraitUrl(c.id)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
                                 </div>
-                                <button
-                                  className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openCard(c.id, c.name, c.faction);
-                                  }}
-                                  title="View card"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                </button>
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${cFi.cardColor}18`, borderLeft: `4px solid ${cFi.cardColor}` }}>
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-xs font-medium text-stone-100 truncate">
+                                          {c.name}
+                                        </p>
+                                        {c.faction === "neutral" && (
+                                          <Badge variant="info" size="sm">
+                                            Neutral
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {c.title && (
+                                        <p className="text-[10px] text-stone-400 truncate">
+                                          {c.title}
+                                        </p>
+                                      )}
+                                      {c.cost != null && (
+                                        <Badge variant="default" size="sm" className="mt-1">
+                                          {c.cost} pts
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <button
+                                      className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-amber-400 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCard(c.id, c.name, c.faction);
+                                      }}
+                                      title="View card"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </Card>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
