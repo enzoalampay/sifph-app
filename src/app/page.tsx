@@ -11,7 +11,8 @@ import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { getFactionInfo } from "@/lib/data/factions";
 import { Badge } from "@/components/ui/Badge";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { GiScrollUnfurled, GiTrophy, GiKnightBanner, GiChest, GiSpellBook, GiTestTubes } from "react-icons/gi";
+import { CasualGame } from "@/lib/types/casual-game";
+import { GiScrollUnfurled, GiTrophy, GiKnightBanner, GiSwordClash, GiChest, GiSpellBook, GiTestTubes } from "react-icons/gi";
 import { IconType } from "react-icons";
 
 const quickActions: { href: string; icon: IconType; title: string; description: string; color: string; iconColor?: string }[] = [
@@ -35,6 +36,13 @@ const quickActions: { href: string; icon: IconType; title: string; description: 
     title: "Manage Players",
     description: "Add and manage player profiles",
     color: "bg-blue-900/20 border-blue-800/30",
+  },
+  {
+    href: "/games/log",
+    icon: GiSwordClash,
+    title: "Log a Game",
+    description: "Record a casual game and track your battles",
+    color: "bg-rose-900/20 border-rose-800/30",
   },
   {
     href: "/collection",
@@ -69,6 +77,8 @@ export default function DashboardPage() {
   const { items: players, loaded: playersLoaded } = useEntityStorage<Player>(
     STORAGE_KEYS.PLAYERS
   );
+  const { items: casualGames, loaded: gamesLoaded } =
+    useEntityStorage<CasualGame>(STORAGE_KEYS.CASUAL_GAMES);
 
   const recentLists = [...armyLists]
     .sort(
@@ -96,7 +106,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickActions.map((action) => {
           const Icon = action.icon;
           return (
@@ -114,8 +124,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Row */}
-      {(listsLoaded || tournamentsLoaded || playersLoaded) && (
-        <div className="grid grid-cols-3 gap-4">
+      {(listsLoaded || tournamentsLoaded || playersLoaded || gamesLoaded) && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card className="text-center">
             <div className="text-2xl sm:text-3xl font-bold text-amber-400">
               {armyLists.length}
@@ -133,6 +143,12 @@ export default function DashboardPage() {
               {players.length}
             </div>
             <div className="text-xs sm:text-sm text-stone-400">Players</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-2xl sm:text-3xl font-bold text-rose-400">
+              {casualGames.length}
+            </div>
+            <div className="text-xs sm:text-sm text-stone-400">Games Logged</div>
           </Card>
         </div>
       )}

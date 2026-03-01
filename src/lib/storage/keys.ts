@@ -6,4 +6,5 @@ export const STORAGE_KEYS = {
   COLLECTION: "collection",
   APP_SETTINGS: "app-settings",
   SCHEMA_VERSION: "schema-version",
+  CASUAL_GAMES: "casual-games",
 } as const;

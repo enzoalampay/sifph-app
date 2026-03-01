@@ -7,6 +7,7 @@ import { useEntityStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 import { Player } from "@/lib/types/player";
 import { Tournament } from "@/lib/types/tournament";
+import { CasualGame } from "@/lib/types/casual-game";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -30,6 +31,7 @@ export default function PlayerProfilePage() {
 
   const { items: players, loaded: playersLoaded } = useEntityStorage<Player>(STORAGE_KEYS.PLAYERS);
   const { items: tournaments, loaded: tournamentsLoaded } = useEntityStorage<Tournament>(STORAGE_KEYS.TOURNAMENTS);
+  const { items: casualGames, loaded: gamesLoaded } = useEntityStorage<CasualGame>(STORAGE_KEYS.CASUAL_GAMES);
 
   const player = useMemo(
     () => players.find((p) => p.id === playerId) ?? null,
@@ -102,16 +104,45 @@ export default function PlayerProfilePage() {
     return records;
   }, [playerId, tournaments, playerNameMap]);
 
+  // Casual games where this player was tagged as the opponent
+  const casualMatchHistory = useMemo(() => {
+    if (!playerId || casualGames.length === 0) return [];
+
+    return casualGames
+      .filter((g) => g.opponentPlayerId === playerId)
+      .map((g) => ({
+        gameId: g.id,
+        date: g.date,
+        opponentName: "Logged by opponent", // the person who logged it
+        // Flip perspective: the viewed player was the opponent in the original log
+        result: (g.result === "win" ? "loss" : g.result === "loss" ? "win" : "draw") as "win" | "loss" | "draw",
+        playerScore: g.opponentScore, // their score (was opponent in original)
+        opponentScore: g.playerScore, // logger's score
+        gameMode: g.gameMode,
+        location: g.location,
+        remarks: g.remarks,
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [playerId, casualGames]);
+
   const stats = useMemo(() => {
-    const wins = matchHistory.filter((m) => m.result === "win" || m.result === "bye").length;
-    const losses = matchHistory.filter((m) => m.result === "loss").length;
-    const draws = matchHistory.filter((m) => m.result === "draw").length;
-    const totalGames = matchHistory.length;
+    const tournamentWins = matchHistory.filter((m) => m.result === "win" || m.result === "bye").length;
+    const tournamentLosses = matchHistory.filter((m) => m.result === "loss").length;
+    const tournamentDraws = matchHistory.filter((m) => m.result === "draw").length;
+
+    const casualWins = casualMatchHistory.filter((m) => m.result === "win").length;
+    const casualLosses = casualMatchHistory.filter((m) => m.result === "loss").length;
+    const casualDraws = casualMatchHistory.filter((m) => m.result === "draw").length;
+
+    const wins = tournamentWins + casualWins;
+    const losses = tournamentLosses + casualLosses;
+    const draws = tournamentDraws + casualDraws;
+    const totalGames = matchHistory.length + casualMatchHistory.length;
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
     return { totalGames, wins, losses, draws, winRate };
-  }, [matchHistory]);
+  }, [matchHistory, casualMatchHistory]);
 
-  if (!playersLoaded || !tournamentsLoaded) {
+  if (!playersLoaded || !tournamentsLoaded || !gamesLoaded) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-stone-400 text-sm">Loading player data...</div>
@@ -210,8 +241,8 @@ export default function PlayerProfilePage() {
         </Card>
       </div>
 
-      {/* Match History */}
-      <h2 className="text-lg font-semibold text-stone-100 mb-4">Match History</h2>
+      {/* Tournament Match History */}
+      <h2 className="text-lg font-semibold text-stone-100 mb-4">Tournament Matches</h2>
       {matchHistory.length === 0 ? (
         <Card>
           <p className="text-center text-sm text-stone-500 py-6">
@@ -266,6 +297,53 @@ export default function PlayerProfilePage() {
                     </td>
                     <td className="px-4 py-3 text-center text-stone-300 whitespace-nowrap">
                       {match.vpScored} - {match.vpAllowed}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Casual Games */}
+      <h2 className="text-lg font-semibold text-stone-100 mb-4 mt-8">Casual Games</h2>
+      {casualMatchHistory.length === 0 ? (
+        <Card>
+          <p className="text-center text-sm text-stone-500 py-6">
+            No casual games recorded for this player.
+          </p>
+        </Card>
+      ) : (
+        <Card padding="none">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-700 text-stone-400">
+                  <th className="px-4 py-3 text-left font-medium">Date</th>
+                  <th className="px-4 py-3 text-left font-medium">Mode</th>
+                  <th className="px-4 py-3 text-left font-medium">Location</th>
+                  <th className="px-4 py-3 text-center font-medium">Result</th>
+                  <th className="px-4 py-3 text-center font-medium">Score</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-800">
+                {casualMatchHistory.map((game) => (
+                  <tr key={game.gameId} className="hover:bg-stone-800/50 transition-colors">
+                    <td className="px-4 py-3 text-stone-300 whitespace-nowrap">
+                      {new Date(game.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-stone-300">
+                      {game.gameMode}
+                    </td>
+                    <td className="px-4 py-3 text-stone-300 truncate max-w-[200px]">
+                      {game.location}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {resultBadge(game.result)}
+                    </td>
+                    <td className="px-4 py-3 text-center text-stone-300 whitespace-nowrap">
+                      {game.playerScore} - {game.opponentScore}
                     </td>
                   </tr>
                 ))}
