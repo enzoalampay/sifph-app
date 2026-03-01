@@ -390,25 +390,29 @@ export default function PlaytestWikiPage() {
                           style={{ backgroundColor: fi.cardColor }}
                         />
                         <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
-                          <div className="flex items-stretch justify-between gap-2">
+                          <div className="flex items-center justify-between gap-2">
                             <div
-                              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                              className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(u.id)}
                             >
                               <img
                                 src={fi.crestUrl}
                                 alt={fi.shortName}
-                                className="w-5 h-5 object-contain shrink-0"
+                                className="w-5 h-5 object-contain shrink-0 mt-0.5"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
-                                {u.name}
-                              </p>
-                              <Badge variant="default" size="sm">
-                                {u.cost} pts
-                              </Badge>
-                              <Badge variant="default" size="sm">
-                                {capitalize(u.tray)}
-                              </Badge>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-stone-100 uppercase break-words">
+                                  {u.name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  <Badge variant="default" size="sm">
+                                    {u.cost} pts
+                                  </Badge>
+                                  <Badge variant="default" size="sm">
+                                    {capitalize(u.tray)}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <div className="w-10 self-stretch overflow-hidden rounded-sm">
@@ -532,37 +536,41 @@ export default function PlaytestWikiPage() {
                           style={{ backgroundColor: fi.cardColor }}
                         />
                         <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
-                          <div className="flex items-stretch justify-between gap-2">
+                          <div className="flex items-center justify-between gap-2">
                             <div
-                              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                              className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(a.id)}
                             >
                               <img
                                 src={fi.crestUrl}
                                 alt={fi.shortName}
-                                className="w-5 h-5 object-contain shrink-0"
+                                className="w-5 h-5 object-contain shrink-0 mt-0.5"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
-                                {a.name}
-                              </p>
-                              {a.cost !== undefined && a.cost > 0 && (
-                                <Badge variant="default" size="sm">
-                                  +{a.cost} pts
-                                </Badge>
-                              )}
-                              {a.cost === 0 && (
-                                <Badge variant="default" size="sm">
-                                  Free
-                                </Badge>
-                              )}
-                              <Badge variant="default" size="sm">
-                                {capitalize(a.tray)}
-                              </Badge>
-                              {a.commander && (
-                                <Badge variant="warning" size="sm">
-                                  Commander
-                                </Badge>
-                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-stone-100 uppercase break-words">
+                                  {a.name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  {a.cost !== undefined && a.cost > 0 && (
+                                    <Badge variant="default" size="sm">
+                                      +{a.cost} pts
+                                    </Badge>
+                                  )}
+                                  {a.cost === 0 && (
+                                    <Badge variant="default" size="sm">
+                                      Free
+                                    </Badge>
+                                  )}
+                                  <Badge variant="default" size="sm">
+                                    {capitalize(a.tray)}
+                                  </Badge>
+                                  {a.commander && (
+                                    <Badge variant="warning" size="sm">
+                                      Commander
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <div className="w-10 self-stretch overflow-hidden rounded-sm">
@@ -683,22 +691,26 @@ export default function PlaytestWikiPage() {
                           style={{ backgroundColor: fi.cardColor }}
                         />
                         <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
-                          <div className="flex items-stretch justify-between gap-2">
+                          <div className="flex items-center justify-between gap-2">
                             <div
-                              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                              className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(n.id)}
                             >
                               <img
                                 src={fi.crestUrl}
                                 alt={fi.shortName}
-                                className="w-5 h-5 object-contain shrink-0"
+                                className="w-5 h-5 object-contain shrink-0 mt-0.5"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
-                                {n.name}
-                              </p>
-                              <Badge variant="default" size="sm">
-                                {n.cost} pts
-                              </Badge>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-stone-100 uppercase break-words">
+                                  {n.name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  <Badge variant="default" size="sm">
+                                    {n.cost} pts
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <div className="w-10 self-stretch overflow-hidden rounded-sm">
@@ -825,22 +837,26 @@ export default function PlaytestWikiPage() {
                         <div className="flex-1 min-w-0 p-2.5 sm:p-3" style={{ backgroundColor: `${fi.cardColor}20` }}>
                           <div className="flex items-center justify-between gap-2">
                             <div
-                              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                              className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer"
                               onClick={() => toggleExpanded(t.id)}
                             >
                               <img
                                 src={fi.crestUrl}
                                 alt={fi.shortName}
-                                className="w-5 h-5 object-contain shrink-0"
+                                className="w-5 h-5 object-contain shrink-0 mt-0.5"
                               />
-                              <p className="text-sm font-medium text-stone-100 truncate uppercase">
-                                {t.name}
-                              </p>
-                              {t.commander && (
-                                <Badge variant="warning" size="sm">
-                                  Commander
-                                </Badge>
-                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-stone-100 uppercase break-words">
+                                  {t.name}
+                                </p>
+                                {t.commander && (
+                                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                    <Badge variant="warning" size="sm">
+                                      Commander
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <button
                               className="shrink-0 p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-teal-400 transition-colors"

@@ -1320,7 +1320,7 @@ export default function BuilderPage() {
                                   <img
                                     src={getPortraitUrl(u.id)}
                                     alt=""
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     loading="lazy"
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
@@ -1410,7 +1410,7 @@ export default function BuilderPage() {
                                   <img
                                     src={getPortraitUrl(n.id)}
                                     alt=""
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     loading="lazy"
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
@@ -1503,7 +1503,7 @@ export default function BuilderPage() {
                                   <img
                                     src={getPortraitUrl(a.id)}
                                     alt=""
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     loading="lazy"
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
@@ -1583,7 +1583,7 @@ export default function BuilderPage() {
                                   <img
                                     src={getPortraitUrl(c.id)}
                                     alt=""
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     loading="lazy"
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
@@ -1988,7 +1988,7 @@ export default function BuilderPage() {
                     <img
                       src={getPortraitUrl(a.id)}
                       alt=""
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="lazy"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
