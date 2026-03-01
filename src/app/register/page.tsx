@@ -11,6 +11,9 @@ import { GiCrossedSwords } from "react-icons/gi";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [realName, setRealName] = useState("");
+  const [realNamePrivate, setRealNamePrivate] = useState(true);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,6 +33,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    if (!displayName.trim()) {
+      setError("Display name is required");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -41,7 +49,11 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, {
+      displayName: displayName.trim(),
+      realName: realName.trim(),
+      realNamePrivate,
+    });
 
     if (error) {
       setError(error);
@@ -111,6 +123,40 @@ export default function RegisterPage() {
               required
               disabled={loading}
             />
+
+            <Input
+              label="Display Name *"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your public player name"
+              required
+              disabled={loading}
+            />
+
+            <Input
+              label="Real Name"
+              type="text"
+              value={realName}
+              onChange={(e) => setRealName(e.target.value)}
+              placeholder="Your real name (optional)"
+              disabled={loading}
+            />
+
+            {realName.trim() && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={realNamePrivate}
+                  onChange={(e) => setRealNamePrivate(e.target.checked)}
+                  className="w-4 h-4 rounded border-stone-600 bg-stone-800 text-amber-500 focus:ring-amber-500/30 accent-amber-500"
+                  disabled={loading}
+                />
+                <span className="text-sm text-stone-400">
+                  Keep my real name private
+                </span>
+              </label>
+            )}
 
             <Input
               label="Password"

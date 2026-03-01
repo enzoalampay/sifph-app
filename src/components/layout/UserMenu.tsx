@@ -38,7 +38,10 @@ export function UserMenu() {
   }
 
   // Logged in — avatar + dropdown
-  const initials = user.email.slice(0, 2).toUpperCase();
+  const displayLabel = user.displayName || user.email;
+  const initials = user.displayName
+    ? user.displayName.slice(0, 2).toUpperCase()
+    : user.email.slice(0, 2).toUpperCase();
 
   const handleSignOut = async () => {
     await signOut();
@@ -57,8 +60,8 @@ export function UserMenu() {
             {initials}
           </span>
         </div>
-        <span className="hidden md:block text-xs text-stone-400 max-w-[120px] truncate">
-          {user.email}
+        <span className="hidden md:block text-xs text-stone-400 max-w-[140px] truncate">
+          {displayLabel}
         </span>
       </button>
 
@@ -68,9 +71,20 @@ export function UserMenu() {
             <p className="text-[10px] text-stone-500 uppercase tracking-wider">
               Signed in as
             </p>
-            <p className="text-sm font-medium text-stone-200 truncate mt-0.5">
-              {user.email}
-            </p>
+            {user.displayName ? (
+              <>
+                <p className="text-sm font-medium text-stone-200 truncate mt-0.5">
+                  {user.displayName}
+                </p>
+                <p className="text-[11px] text-stone-500 truncate">
+                  {user.email}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm font-medium text-stone-200 truncate mt-0.5">
+                {user.email}
+              </p>
+            )}
           </div>
 
           <div className="py-1">

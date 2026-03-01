@@ -15,19 +15,29 @@ import { AuthUser, mapSupabaseUser } from "@/lib/types/auth";
 // Context shape
 // ---------------------------------------------------------------------------
 
+interface ProfileMetadata {
+  displayName: string;
+  realName: string;
+  realNamePrivate: boolean;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   initialized: boolean;
   signUp: (
     email: string,
-    password: string
+    password: string,
+    metadata?: ProfileMetadata
   ) => Promise<{ error: string | null }>;
   signIn: (
     email: string,
     password: string
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  updateProfile: (
+    data: Partial<ProfileMetadata>
+  ) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -63,10 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, metadata?: ProfileMetadata) => {
       try {
         const supabase = createClient();
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: metadata ? { data: metadata } : undefined,
+        });
         return { error: error?.message ?? null };
       } catch (err) {
         return { error: (err as Error).message };
@@ -96,9 +110,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const updateProfile = useCallback(
+    async (data: Partial<ProfileMetadata>) => {
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.updateUser({ data });
+        return { error: error?.message ?? null };
+      } catch (err) {
+        return { error: (err as Error).message };
+      }
+    },
+    []
+  );
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, initialized, signUp, signIn, signOut }}
+      value={{ user, loading, initialized, signUp, signIn, signOut, updateProfile }}
     >
       {children}
     </AuthContext.Provider>
