@@ -653,7 +653,7 @@ export default function BuilderPage() {
                   <div>
                     <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Commander</p>
                     <div className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${pFi.cardColor}25`, borderLeft: `3px solid ${pFi.cardColor}` }}>
-                      <img src={getPortraitUrl(pCommander.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <img src={getPortraitUrl(pCommander.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: pFi.cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       <div>
                         <p className="text-sm font-medium text-stone-100">{pCommander.name}</p>
                         {pCommander.title && <p className="text-[10px] text-stone-400">{pCommander.title}</p>}
@@ -670,7 +670,7 @@ export default function BuilderPage() {
                       {pUnits.map(({ slot, unit, attachments }) => (
                         <div key={slot.id} className="rounded-md p-2" style={{ backgroundColor: `${unit ? getFactionInfo(unit.faction).cardColor : pFi.cardColor}25`, borderLeft: `3px solid ${unit ? getFactionInfo(unit.faction).cardColor : pFi.cardColor}` }}>
                           <div className="flex items-center gap-2">
-                            {unit && <img src={getPortraitUrl(unit.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                            {unit && <img src={getPortraitUrl(unit.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: getFactionInfo(unit.faction).cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <p className="text-xs font-medium text-stone-100 truncate">{unit?.name ?? slot.unitId}</p>
@@ -701,7 +701,7 @@ export default function BuilderPage() {
                     <div className="space-y-1.5">
                       {pNCUs.map(({ slot, ncu }) => (
                         <div key={slot.id} className="flex items-center gap-2 rounded-md p-2" style={{ backgroundColor: `${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}25`, borderLeft: `3px solid ${ncu ? getFactionInfo(ncu.faction).cardColor : pFi.cardColor}` }}>
-                          {ncu && <img src={getPortraitUrl(ncu.id)} alt="" className="w-8 h-8 rounded-full object-cover bg-stone-800 shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                          {ncu && <img src={getPortraitUrl(ncu.id)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: getFactionInfo(ncu.faction).cardColor }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                           <div>
                             <p className="text-xs font-medium text-stone-100">{ncu?.name ?? slot.ncuId}</p>
                             {ncu && <span className="text-[10px] text-stone-400">{ncu.cost} pts</span>}
@@ -830,11 +830,12 @@ export default function BuilderPage() {
             {commanderData ? (
               <div className="mt-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-start gap-2.5">
+                  <div className="flex items-center gap-2.5">
                     <img
                       src={getPortraitUrl(commanderData.id)}
                       alt=""
-                      className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                      style={{ backgroundColor: factionInfo!.cardColor }}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       loading="lazy"
                     />
@@ -949,12 +950,13 @@ export default function BuilderPage() {
                       <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: unitFi.cardColor }} />
                       <div className="flex-1 p-3" style={{ backgroundColor: `${unitFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             {unit && (
                               <img
                                 src={getPortraitUrl(unit.id)}
                                 alt=""
-                                className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                                style={{ backgroundColor: unitFi.cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
                               />
@@ -1020,7 +1022,8 @@ export default function BuilderPage() {
                               <img
                                 src={getPortraitUrl(att.id)}
                                 alt=""
-                                className="w-6 h-6 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                className="w-6 h-6 rounded-full object-cover shrink-0 border border-stone-600"
+                                style={{ backgroundColor: getFactionInfo(att.faction).cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
                               />
@@ -1110,12 +1113,13 @@ export default function BuilderPage() {
                       <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: ncuFi.cardColor }} />
                       <div className="flex-1 p-3" style={{ backgroundColor: `${ncuFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             {ncu && (
                               <img
                                 src={getPortraitUrl(ncu.id)}
                                 alt=""
-                                className="w-9 h-9 rounded-full object-cover bg-stone-800 shrink-0 border border-stone-600"
+                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                                style={{ backgroundColor: ncuFi.cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
                               />
@@ -1312,7 +1316,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
+                                <div className="w-14 shrink-0 overflow-hidden rounded-l-lg self-stretch" style={{ backgroundColor: uFi.cardColor }}>
                                   <img
                                     src={getPortraitUrl(u.id)}
                                     alt=""
@@ -1321,7 +1325,7 @@ export default function BuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${uFi.cardColor}18`, borderLeft: `2px solid ${uFi.cardColor}` }}>
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${uFi.cardColor}18`, borderLeft: `4px solid ${uFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
@@ -1402,7 +1406,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
+                                <div className="w-14 shrink-0 overflow-hidden rounded-l-lg self-stretch" style={{ backgroundColor: nFi.cardColor }}>
                                   <img
                                     src={getPortraitUrl(n.id)}
                                     alt=""
@@ -1411,7 +1415,7 @@ export default function BuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${nFi.cardColor}18`, borderLeft: `2px solid ${nFi.cardColor}` }}>
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${nFi.cardColor}18`, borderLeft: `4px solid ${nFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
@@ -1495,7 +1499,7 @@ export default function BuilderPage() {
                             >
                               <div className="flex">
                                 {/* Character portrait thumbnail */}
-                                <div className="w-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg self-stretch">
+                                <div className="w-14 shrink-0 overflow-hidden rounded-l-lg self-stretch" style={{ backgroundColor: aFi.cardColor }}>
                                   <img
                                     src={getPortraitUrl(a.id)}
                                     alt=""
@@ -1504,7 +1508,7 @@ export default function BuilderPage() {
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${aFi.cardColor}18`, borderLeft: `2px solid ${aFi.cardColor}` }}>
+                                <div className="flex-1 min-w-0 p-2" style={{ backgroundColor: `${aFi.cardColor}18`, borderLeft: `4px solid ${aFi.cardColor}` }}>
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="min-w-0 flex-1">
                                       <p className="text-xs font-medium text-stone-100 truncate">
@@ -1957,7 +1961,7 @@ export default function BuilderPage() {
               >
                 <div className="flex">
                   {/* Character portrait thumbnail */}
-                  <div className="w-12 h-14 shrink-0 bg-stone-900 overflow-hidden rounded-l-lg">
+                  <div className="w-12 h-14 shrink-0 overflow-hidden rounded-l-lg" style={{ backgroundColor: getFactionInfo(a.faction).cardColor }}>
                     <img
                       src={getPortraitUrl(a.id)}
                       alt=""
