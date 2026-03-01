@@ -2,11 +2,13 @@ import {
   Tournament,
   TournamentPlayer,
   TournamentPlayerStatus,
+  LockedArmyList,
   Round,
   Pairing,
   MatchResult,
   GameMode,
 } from "../types/tournament";
+import { ArmyList } from "../types/army-list";
 import { FactionId } from "../types/game-data";
 import { calculateStandings, calculateTP, calculateSP } from "./standings";
 import { generateSwissPairings, generateRandomPairings } from "./swiss";
@@ -68,11 +70,51 @@ export function toggleListsRevealed(tournament: Tournament): Tournament {
   };
 }
 
+export function lockLists(
+  tournament: Tournament,
+  armyListMap: Map<string, ArmyList>
+): Tournament {
+  if (tournament.listsLocked) return tournament;
+
+  const lockedLists: LockedArmyList[] = [];
+  for (const player of tournament.players) {
+    if (player.status !== "accepted") continue;
+    for (const listId of player.armyListIds) {
+      const list = armyListMap.get(listId);
+      if (list) {
+        lockedLists.push({
+          listId,
+          playerId: player.playerId,
+          snapshot: JSON.parse(JSON.stringify(list)),
+        });
+      }
+    }
+  }
+
+  return {
+    ...tournament,
+    listsLocked: true,
+    lockedLists,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function unlockLists(tournament: Tournament): Tournament {
+  if (!tournament.listsLocked) return tournament;
+  return {
+    ...tournament,
+    listsLocked: false,
+    lockedLists: [],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function setPlayerFaction(
   tournament: Tournament,
   playerId: string,
   faction: FactionId
 ): Tournament {
+  if (tournament.listsLocked) return tournament;
   return {
     ...tournament,
     players: tournament.players.map((p) =>
@@ -87,6 +129,7 @@ export function addPlayerList(
   playerId: string,
   armyListId: string
 ): Tournament {
+  if (tournament.listsLocked) return tournament;
   return {
     ...tournament,
     players: tournament.players.map((p) => {
@@ -103,6 +146,7 @@ export function removePlayerList(
   playerId: string,
   armyListId: string
 ): Tournament {
+  if (tournament.listsLocked) return tournament;
   return {
     ...tournament,
     players: tournament.players.map((p) =>

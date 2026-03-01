@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ArmyListPreview } from "@/components/tournament/ArmyListPreview";
 
 type TabView = "standings" | "rounds" | "players" | "lists";
 
@@ -143,6 +144,9 @@ export default function TournamentDetailPage() {
   // Faction + list assignment modal
   const [factionModalPlayer, setFactionModalPlayer] = useState<string | null>(null);
   const [listModalPlayer, setListModalPlayer] = useState<string | null>(null);
+
+  // Army list preview modal
+  const [previewListData, setPreviewListData] = useState<ArmyList | null>(null);
 
   // Sync selectedRound when rounds change
   useEffect(() => {
@@ -270,9 +274,34 @@ export default function TournamentDetailPage() {
     updateTournament(updated);
   }, [tournament, updateTournament]);
 
+  const handleLockLists = useCallback(() => {
+    if (!tournament) return;
+    const updated = tm.lockLists(tournament, armyListMap);
+    updateTournament(updated);
+  }, [tournament, armyListMap, updateTournament]);
+
+  const handleUnlockLists = useCallback(() => {
+    if (!tournament) return;
+    const updated = tm.unlockLists(tournament);
+    updateTournament(updated);
+  }, [tournament, updateTournament]);
+
+  const getListForDisplay = useCallback(
+    (listId: string, playerId: string): ArmyList | null => {
+      if (tournament?.listsLocked) {
+        const locked = tournament.lockedLists.find(
+          (l) => l.listId === listId && l.playerId === playerId
+        );
+        return locked?.snapshot ?? null;
+      }
+      return armyListMap.get(listId) ?? null;
+    },
+    [tournament, armyListMap]
+  );
+
   const handleSetFaction = useCallback(
     (playerId: string, faction: FactionId) => {
-      if (!tournament) return;
+      if (!tournament || tournament.listsLocked) return;
       const updated = tm.setPlayerFaction(tournament, playerId, faction);
       updateTournament(updated);
       setFactionModalPlayer(null);
@@ -282,7 +311,7 @@ export default function TournamentDetailPage() {
 
   const handleAddList = useCallback(
     (playerId: string, listId: string) => {
-      if (!tournament) return;
+      if (!tournament || tournament.listsLocked) return;
       const updated = tm.addPlayerList(tournament, playerId, listId);
       updateTournament(updated);
     },
@@ -291,7 +320,7 @@ export default function TournamentDetailPage() {
 
   const handleRemoveList = useCallback(
     (playerId: string, listId: string) => {
-      if (!tournament) return;
+      if (!tournament || tournament.listsLocked) return;
       const updated = tm.removePlayerList(tournament, playerId, listId);
       updateTournament(updated);
     },
@@ -690,9 +719,12 @@ export default function TournamentDetailPage() {
                               <span className="text-xs text-stone-500">
                                 {tp.armyListIds.length}/{tournament.requiredLists} lists
                               </span>
+                              {tournament.listsLocked && (
+                                <Badge variant="error" size="sm">Locked</Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-2 ml-2">
-                              {isAdmin && tournament.status === "draft" && (
+                              {isAdmin && tournament.status === "draft" && !tournament.listsLocked && (
                                 <>
                                   <Button
                                     size="sm"
@@ -718,7 +750,7 @@ export default function TournamentDetailPage() {
                                 </>
                               )}
                               {/* Players can manage their own faction/lists */}
-                              {!isAdmin && user && tp.playerId === user.id && tournament.status === "draft" && (
+                              {!isAdmin && user && tp.playerId === user.id && tournament.status === "draft" && !tournament.listsLocked && (
                                 <>
                                   <Button
                                     size="sm"
@@ -791,13 +823,34 @@ export default function TournamentDetailPage() {
       {activeTab === "lists" && (
         <div>
           {isAdmin && (
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-stone-400">
-                {tournament.listsRevealed ? "Lists are visible to all players" : "Lists are hidden from players"}
-              </p>
-              <Button size="sm" variant="secondary" onClick={handleToggleListsRevealed}>
-                {tournament.listsRevealed ? "Hide Lists" : "Reveal Lists"}
-              </Button>
+            <div className="mb-4 space-y-3">
+              {/* Lock / Unlock row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-stone-400">
+                    {tournament.listsLocked ? "Lists are locked" : "Lists are unlocked"}
+                  </p>
+                  <Badge variant={tournament.listsLocked ? "error" : "warning"} size="sm">
+                    {tournament.listsLocked ? "Locked" : "Unlocked"}
+                  </Badge>
+                </div>
+                <Button
+                  size="sm"
+                  variant={tournament.listsLocked ? "secondary" : "danger"}
+                  onClick={tournament.listsLocked ? handleUnlockLists : handleLockLists}
+                >
+                  {tournament.listsLocked ? "Unlock Lists" : "Lock Lists"}
+                </Button>
+              </div>
+              {/* Reveal / Hide row */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-stone-400">
+                  {tournament.listsRevealed ? "Lists are visible to all players" : "Lists are hidden from players"}
+                </p>
+                <Button size="sm" variant="secondary" onClick={handleToggleListsRevealed}>
+                  {tournament.listsRevealed ? "Hide Lists" : "Reveal Lists"}
+                </Button>
+              </div>
             </div>
           )}
 
@@ -831,9 +884,9 @@ export default function TournamentDetailPage() {
                         {tp.armyListIds.length === 0 ? (
                           <p className="text-xs text-stone-500 italic">No lists registered</p>
                         ) : (
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             {tp.armyListIds.map((listId) => {
-                              const list = armyListMap.get(listId);
+                              const list = getListForDisplay(listId, tp.playerId);
                               if (!list) return (
                                 <p key={listId} className="text-xs text-stone-500">Unknown list</p>
                               );
@@ -845,6 +898,18 @@ export default function TournamentDetailPage() {
                                   </Badge>
                                   <span className="text-stone-300">{list.name}</span>
                                   <span className="text-stone-500 text-xs">{list.pointLimit}pts</span>
+                                  {(isAdmin || tournament.listsRevealed) && (
+                                    <button
+                                      className="text-stone-500 hover:text-amber-400 transition-colors ml-auto"
+                                      onClick={() => setPreviewListData(list)}
+                                      title="View list details"
+                                    >
+                                      <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                                        <path fillRule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               );
                             })}
@@ -1399,6 +1464,29 @@ export default function TournamentDetailPage() {
               </Button>
             </div>
           </div>
+        )}
+      </Modal>
+
+      {/* ================================================================= */}
+      {/* ARMY LIST PREVIEW MODAL                                            */}
+      {/* ================================================================= */}
+      <Modal
+        isOpen={previewListData !== null}
+        onClose={() => setPreviewListData(null)}
+        title={previewListData?.name ?? "Army List"}
+        size="lg"
+      >
+        {previewListData && (
+          <ArmyListPreview
+            list={previewListData}
+            onOpenInBuilder={
+              !tournament.listsLocked
+                ? () => {
+                    window.open(`/builder/${previewListData.id}`, "_blank");
+                  }
+                : undefined
+            }
+          />
         )}
       </Modal>
     </div>

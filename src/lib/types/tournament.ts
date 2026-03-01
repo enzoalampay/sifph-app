@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { FactionId } from "./game-data";
+import { ArmyList } from "./army-list";
 
 export type TournamentStatus = "draft" | "active" | "completed";
 export type RoundStatus = "pending" | "in_progress" | "completed";
@@ -19,12 +20,20 @@ export interface Tournament {
   requiredLists: number;
   adminUserId: string;
   listsRevealed: boolean;
+  listsLocked: boolean;
+  lockedLists: LockedArmyList[];
   status: TournamentStatus;
   players: TournamentPlayer[];
   rounds: Round[];
   scoringScheme: ScoringScheme;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LockedArmyList {
+  listId: string; // original ArmyList.id
+  playerId: string; // which TournamentPlayer this belongs to
+  snapshot: ArmyList; // deep copy at lock time
 }
 
 export interface TournamentPlayer {
@@ -142,6 +151,8 @@ export function createTournament(params: CreateTournamentParams): Tournament {
     requiredLists: params.requiredLists ?? 1,
     adminUserId: params.adminUserId,
     listsRevealed: false,
+    listsLocked: false,
+    lockedLists: [],
     status: "draft",
     players: [],
     rounds: [],
@@ -174,6 +185,8 @@ export function normalizeTournament(raw: Record<string, unknown>): Tournament {
     requiredLists: t.requiredLists ?? 1,
     adminUserId: t.adminUserId ?? "",
     listsRevealed: t.listsRevealed ?? false,
+    listsLocked: t.listsLocked ?? false,
+    lockedLists: t.lockedLists ?? [],
     scoringScheme: normalizedScheme,
     players: (t.players ?? []).map((p) => ({
       ...p,
