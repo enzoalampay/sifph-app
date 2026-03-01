@@ -732,7 +732,7 @@ export default function PlaytestBuilderPage() {
                     <img
                       src={getPortraitUrl(commanderData.id)}
                       alt=""
-                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                      className="w-14 h-14 rounded-full object-cover shrink-0 border-2 border-stone-600"
                       style={{ backgroundColor: factionInfo!.cardColor }}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       loading="lazy"
@@ -843,9 +843,9 @@ export default function PlaytestBuilderPage() {
                 {resolvedUnits.map(({ slot, unit, attachments }) => {
                   const unitFi = unit ? getFactionInfo(unit.faction) : factionInfo!;
                   return (
-                  <Card key={slot.id} padding="none" className="overflow-hidden">
+                  <Card key={slot.id} padding="none">
                     <div className="flex">
-                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: unitFi.cardColor }} />
+                      <div className="w-1.5 shrink-0 self-stretch rounded-l-lg" style={{ backgroundColor: unitFi.cardColor }} />
                       <div className="flex-1 p-3" style={{ backgroundColor: `${unitFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -853,7 +853,7 @@ export default function PlaytestBuilderPage() {
                               <img
                                 src={getPortraitUrl(unit.id)}
                                 alt=""
-                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                                className="w-14 h-14 rounded-full object-cover shrink-0 border-2 border-stone-600"
                                 style={{ backgroundColor: unitFi.cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
@@ -920,7 +920,7 @@ export default function PlaytestBuilderPage() {
                               <img
                                 src={getPortraitUrl(att.id)}
                                 alt=""
-                                className="w-6 h-6 rounded-full object-cover shrink-0 border border-stone-600"
+                                className="w-8 h-8 rounded-full object-cover shrink-0 border border-stone-600"
                                 style={{ backgroundColor: getFactionInfo(att.faction).cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
@@ -1006,9 +1006,9 @@ export default function PlaytestBuilderPage() {
                 {resolvedNCUs.map(({ slot, ncu }) => {
                   const ncuFi = ncu ? getFactionInfo(ncu.faction) : factionInfo!;
                   return (
-                  <Card key={slot.id} padding="none" className="overflow-hidden">
+                  <Card key={slot.id} padding="none">
                     <div className="flex">
-                      <div className="w-1.5 shrink-0 self-stretch" style={{ backgroundColor: ncuFi.cardColor }} />
+                      <div className="w-1.5 shrink-0 self-stretch rounded-l-lg" style={{ backgroundColor: ncuFi.cardColor }} />
                       <div className="flex-1 p-3" style={{ backgroundColor: `${ncuFi.cardColor}20` }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -1016,7 +1016,7 @@ export default function PlaytestBuilderPage() {
                               <img
                                 src={getPortraitUrl(ncu.id)}
                                 alt=""
-                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-600"
+                                className="w-14 h-14 rounded-full object-cover shrink-0 border-2 border-stone-600"
                                 style={{ backgroundColor: ncuFi.cardColor }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 loading="lazy"
